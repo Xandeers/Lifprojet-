@@ -1,2 +1,9 @@
-flask
-flask_cors
+Flask
+Flask-cors
+Flask-SQLAlchemy
+Flask-JWT-Extended
+Flask-Marshmallow
+webargs
+python-dotenv
+marshmallow-sqlalchemy
+werkzeug
