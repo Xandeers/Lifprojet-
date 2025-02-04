@@ -1,4 +1,4 @@
-from . import db, ma
+from api import db, ma
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # User Model
@@ -40,6 +40,7 @@ class User(db.Model):
 class UserSchema(ma.SQLAlchemySchema):
     class Meta:
         model = User
+        ordered = True
 
     id = ma.auto_field()
     username = ma.auto_field()
