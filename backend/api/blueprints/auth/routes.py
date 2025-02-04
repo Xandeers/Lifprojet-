@@ -56,15 +56,13 @@ def login(args):
     if user and user.check_password(password):
         # Login logic
         session['user_id'] = user.id 
-        return jsonify({
-            'msg': 'Login successfully'
-        }), 200
+        return user_schema.jsonify(user), 200
     else:
         return jsonify({
             'error': 'Invalid credentials'
         }), 401
     
-@auth_bp.route('/logout', methods=["POST"])
+@auth_bp.route('/logout', methods=["DELETE"])
 def logout():
     response = jsonify({"msg": "Logout successful"})
     session.pop('user_id', None)
