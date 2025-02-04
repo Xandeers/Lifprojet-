@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify
 from webargs import fields
 from webargs.flaskparser import use_args, parser
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, set_access_cookies, unset_jwt_cookies, jwt_required, get_jwt_identity
 
 from . import db
 from .models import User, user_schema
@@ -13,7 +13,7 @@ main = Blueprint('main', __name__)
 def handle_request_parsing_error(err, req, schema, *, error_status_code, error_headers):
     response = {
         'error': 'Validation Error',
-        'message': err.messages
+        'msg': err.messages
     }
     return jsonify(response), 400
 
@@ -54,17 +54,22 @@ def login(args):
 
     # Search user
     user = User.query.filter_by(email=email).first()
-
     if user and user.check_password(password):
-        access_token = create_access_token(identity=str(user.id), fresh=True)
-        return jsonify({
-            'message': 'Login successful',
-            'access_token': access_token
-        }), 200
+        response = jsonify({"msg": 'Login successful'})
+        access_token = create_access_token(identity=str(user_schema.jsonify(user)))
+        set_access_cookies(response, access_token)
+        return response
+
     else:
         return jsonify({
             'error': 'Invalid credentials'
         }), 401
+    
+@main.route('/logout', methods=["POST"])
+def logout():
+    response = jsonify({"msg": "Logout successful"})
+    unset_jwt_cookies(response)
+    return response
     
 @main.route('/profile', methods=['GET'])
 @jwt_required()
@@ -74,7 +79,7 @@ def profile():
 
     if not user:
         return jsonify({
-            'message': 'User not found'
+            'msg': 'User not found'
         }), 404
     
-    return user_schema.jsonify(user)
+    return user_schema.jsonify(user), 200

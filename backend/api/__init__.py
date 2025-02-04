@@ -14,7 +14,7 @@ load_dotenv()
 db = SQLAlchemy()
 jwt = JWTManager()
 ma = Marshmallow()
-cors = CORS()
+cors = CORS(supports_credentials=True)
 
 def create_app():
     # Flask App Instance
@@ -24,6 +24,7 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = getenv('DATABASE_URI')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_SECRET_KEY'] = getenv('JWT_SECRET_KEY')
+    app.config['JWT_TOKEN_LOCATION'] = ["cookies"]
 
     # Initialization of Flask Extensions
     db.init_app(app)
