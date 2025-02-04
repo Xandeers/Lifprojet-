@@ -3,7 +3,6 @@ from webargs import fields
 from webargs.flaskparser import use_args, parser
 
 from . import db
-from .models import User, user_schema
 
 main = Blueprint('main', __name__)
 
