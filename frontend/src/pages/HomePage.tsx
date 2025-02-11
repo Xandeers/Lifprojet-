@@ -2,8 +2,8 @@ import LayoutPage from "./LayoutPage";
 
 function HomePage() {
     return (
-        <LayoutPage>
-            <h1>Home Page</h1>
+        <LayoutPage title="Accueil">
+            mon contenu
         </LayoutPage>
     );
 }

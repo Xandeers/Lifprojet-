@@ -1,18 +1,31 @@
-import { Link } from "react-router";
 import { AuthStatus, useAuth } from "../../hooks/useAuth";
 import LogoutButton from "../auth/LogoutButton";
+import NavbarItem from "./NavbarItem";
 
 export default function NavbarLayout() {
-    const { status } = useAuth();
+    const { status, account } = useAuth();
     let button;
     if(status === AuthStatus.Authenticated) {
         button = <LogoutButton />
     }
     return (
-        <ul>
-            <li><Link to="/">Home</Link></li>
-            <li><Link to="/login">Login</Link></li>
-            {button}
-        </ul>
+        <nav className="w-64 h-full p-4 bg-white border-r border-gray-200 flex flex-col fixed">
+            <div className="mb-6">
+                <img src="logo.png" alt="RecipeLogo" />
+            </div>
+            <ul className="space-y-4">
+                <li><NavbarItem title="Accueil" logo="🏠" dest="/" /></li>
+                <li><NavbarItem title="Explorer" logo="🍽️" dest="/" /></li>
+                <li>
+                    {
+                        account != undefined 
+                            ? <NavbarItem title={account.username} logo="👤"dest= "/" /> 
+                            : <>
+                                <p>se connecter</p>
+                            </>
+                    }
+                </li>
+            </ul>
+        </nav>
     );
 }

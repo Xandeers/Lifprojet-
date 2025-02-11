@@ -1,8 +1,5 @@
 from flask import Blueprint, jsonify, session
-from webargs import fields
 from webargs.flaskparser import use_args, parser
-
-from . import db
 
 main = Blueprint('main', __name__)
 

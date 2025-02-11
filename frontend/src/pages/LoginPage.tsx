@@ -11,9 +11,10 @@ export default function LoginPage() {
     }
 
     return (
-        <LayoutPage>
-            <h1 className="font-bold text-3xl">Login Page</h1>
-            <LoginForm />
+        <LayoutPage title="Se connecter">
+            <div className="p-5">
+                <LoginForm />
+            </div>
         </LayoutPage>
     );
 }
