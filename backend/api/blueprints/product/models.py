@@ -27,9 +27,10 @@ class ProductIndustrial(db.Model):
     date_added = db.Column(db.Date, default=datetime.utcnow().date)
     date_modified = db.Column(db.Date, default=datetime.utcnow().date)
     image = db.Column(db.String(255))
+    information = db.Column(db.String(255)) #description qui peu contenir par exemple les alergene exemple arrachide etc ..
 
 
-      def __init__(self, barcode, name, carbohydrates,energy, fat, fiber , proteins, salt, saturated_fat, fruits_vegetables_nuts_estimate, sugars, sodium,nutriscore , image):
+      def __init__(self, barcode, name, carbohydrates,energy, fat, fiber , proteins, salt, saturated_fat, fruits_vegetables_nuts_estimate, sugars, sodium,nutriscore , image, information):
       
           self.barcode = barcode
           self.name = name
@@ -45,6 +46,7 @@ class ProductIndustrial(db.Model):
           self.sodium = sodium 
           self.nutriscore = nutriscore
           self.image = image 
+          self.information = information 
           
 
           # Methods to verify if product already exists
@@ -52,5 +54,15 @@ class ProductIndustrial(db.Model):
     def is_product_taken(cls, barcode):
         """Vérifie si un produit existe deja"""
         return db.session.query(cls.barcode).filter_by(barcode=barcode).first() is not None
+
+    
+    @classmethod
+    def is_inside(cls, element):
+        """Vérifie si un element est contenu dans un produit """
+        pattern = rf"^[a-zA-Z0-9]*{element}[a-zA-Z0-9]*$"
+        return db.session.query(cls).filter(cls.information.op('REGEXP')(pattern)).first() is not None
+
+
+    
 
     
