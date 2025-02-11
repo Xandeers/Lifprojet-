@@ -63,7 +63,3 @@ from datetime import datetime
             pattern = rf"^[a-zA-Z0-9]*{element}[a-zA-Z0-9]*$"
             return db.session.query(cls).filter(cls.information.op('REGEXP')(pattern)).first() is not None
 
-
-        
-
-        

@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from api import db
 from models import ProductIndustrial 
-
+from SQLAlchemy import func 
 
 # Créer le Blueprint
 product_bp = Blueprint('product', __name__)
@@ -78,6 +78,47 @@ def get_products_nutriscore_x(letter):
             'image': product.image,
             'information': product.information,
         })
+    # Retourner les produits sous forme de JSON avec les informations de pagination
+    return jsonify({
+        'products': result,
+        'total': products.total,
+        'pages': products.pages,
+        'current_page': products.page
+    })
+
+
+@product_bp.route('/product/industrial/<name>', methods=['GET'])
+    def search_product_by_name(name):
+    # Récupérer le paramètre 'page' depuis l'URL (page=2, par défaut page=1)
+    page = request.args.get('page', default=1, type=int)  # Page par défaut = 1 si non précisé
+    per_page = 20  # Nombre de produits par page
+
+    # Utiliser la fonction pg_trgm pour une recherche floue sur le nom
+    products = ProductIndustrial.query.filter(
+        func.similarity(ProductIndustrial.name, name) > 0.3  # Ajuster le seuil selon tes besoins
+    ).paginate(page, per_page, False)
+
+    # Sérialiser les produits
+    result = []
+    for product in products.items:
+        result.append({
+            'barcode': product.barcode,
+            'name': product.name,
+            'carbohydrates': product.carbohydrates,
+            'energy': product.energy,
+            'fat': product.fat,
+            'fiber': product.fiber,
+            'proteins': product.proteins,
+            'salt': product.salt,
+            'saturated_fat': product.saturated_fat,
+            'fruits_vegetables_nuts_estimate': product.fruits_vegetables_nuts_estimate,
+            'sugars': product.sugars,
+            'sodium': product.sodium,
+            'nutriscore': product.nutriscore,
+            'image': product.image,
+            'information': product.information,
+        })
+    
     # Retourner les produits sous forme de JSON avec les informations de pagination
     return jsonify({
         'products': result,
