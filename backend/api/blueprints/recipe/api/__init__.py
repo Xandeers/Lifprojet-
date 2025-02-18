@@ -1,8 +1,3 @@
-from flask import Blueprint
-
-recipe_bp = Blueprint('recipe', __name__, url_prefix='/recipe')
-
-from .api import routes
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
