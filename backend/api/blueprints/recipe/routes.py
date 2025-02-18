@@ -1,17 +1,17 @@
-from flask import Blueprint, request, jsonify
+from flask import request, jsonify
 from api import db
-from api.models import Recipe, recipe_schema, recipes_schema
+from backend.api.blueprints.recipe.models import Recipe, recipe_schema, recipes_schema
+from . import recipe_bp
 
-recipe_routes = Blueprint("recipe_routes", __name__)
 
 # 🔹 Récupérer toutes les recettes
-@recipe_routes.route("/", methods=["GET"])
+@recipe_bp.route("/", methods=["GET"])
 def get_all_recipes():
     recipes = Recipe.query.all()
     return recipes_schema.jsonify(recipes)
 
 # 🔹 Récupérer une recette par ID
-@recipe_routes.route("/<int:id>", methods=["GET"])
+@recipe_bp.route("/<int:id>", methods=["GET"])
 def get_recipe(id):
     recipe = Recipe.query.get(id)
     if not recipe:
@@ -19,7 +19,7 @@ def get_recipe(id):
     return recipe_schema.jsonify(recipe)
 
 # 🔹 Ajouter une recette
-@recipe_routes.route('/recipe', methods=['POST'])
+@recipe_bp.route('/recipe', methods=['POST'])
 def create_recipe():
     data = request.get_json()
 
@@ -38,12 +38,8 @@ def create_recipe():
 
     return recipe_schema.jsonify(new_recipe), 201
 
-
-
-
-
 # 🔹 Modifier une recette
-@recipe_routes.route("/<int:id>", methods=["PUT"])
+@recipe_bp.route("/<int:id>", methods=["PUT"])
 def update_recipe(id):
     recipe = Recipe.query.get(id)
     if not recipe:
@@ -59,7 +55,7 @@ def update_recipe(id):
     return recipe_schema.jsonify(recipe)
 
 # 🔹 Supprimer une recette
-@recipe_routes.route("/<int:id>", methods=["DELETE"])
+@recipe_bp.route("/<int:id>", methods=["DELETE"])
 def delete_recipe(id):
     recipe = Recipe.query.get(id)
     if not recipe:

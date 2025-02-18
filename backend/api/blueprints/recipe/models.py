@@ -1,5 +1,5 @@
 from api import db, ma
-from auth.models import User, UserSchemas
+from auth.models import User, UserSchema
 
 # 🔹 Modèle Recipe (ajout de la relation avec User)
 class Recipe(db.Model):

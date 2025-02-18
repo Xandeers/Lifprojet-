@@ -38,7 +38,12 @@ def create_app():
 
     # Register Blueprint
     from .blueprints.auth import auth_bp
+    from .blueprints.product import product_bp
+    #from .blueprints.recipe import recipe_bp
+
     app.register_blueprint(auth_bp)
+    app.register_blueprint(product_bp)
+   # app.register_blueprint(recipe_bp)
 
     # Return Flask app instance
     return app

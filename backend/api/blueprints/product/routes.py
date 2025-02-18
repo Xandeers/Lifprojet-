@@ -1,14 +1,12 @@
-from flask import Blueprint, request, jsonify
+from flask import request, jsonify
 from api import db
-from models import ProductIndustrial 
-from SQLAlchemy import func 
-
-# Créer le Blueprint
-product_bp = Blueprint('product', __name__)
+from .models import ProductIndustrial 
+from flask_sqlalchemy import SQLAlchemy
+from . import product_bp
 
 #recupere tout les produits 
 
-@product_bp.route('/product/industrial/all', methods=['GET'])
+@product_bp.route('/industrial/all', methods=['GET'])
 def get_all_products():
     # Récupérer le paramètre 'page' depuis l'URL (page=2, par défaut page=1)
     page = request.args.get('page', default=1, type=int)  # Page par défaut = 1 si non précisé
@@ -48,7 +46,7 @@ def get_all_products():
     
 #recupere tout les produit qui on un nutriscore qui a été prealablement choisi 
 
-    @product_bp.route('/product/industrial/nutriscore-<letter>', methods=['GET'])
+@product_bp.route('/industrial/nutriscore-<letter>', methods=['GET'])
 def get_products_nutriscore_x(letter):
 
     #verification du nutriscore et retourne une erreur en cas de recherche non correct
@@ -96,7 +94,7 @@ def get_products_nutriscore_x(letter):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@product_bp.route('/product/industrial/<name>', methods=['GET'])
+@product_bp.route('/industrial/<name>', methods=['GET'])
 def search_product_by_name(name):
     # Récupérer le paramètre 'page' depuis l'URL (page=2, par défaut page=1)
     page = request.args.get('page', default=1, type=int)  # Page par défaut = 1 si non précisé
@@ -104,7 +102,7 @@ def search_product_by_name(name):
     try:
         # Utiliser la fonction pg_trgm pour une recherche floue sur le nom
         products = ProductIndustrial.query.filter(
-            func.similarity(ProductIndustrial.name, name) > 0.3  # Ajuster le seuil selon tes besoins
+            SQLAlchemy.func.similarity(ProductIndustrial.name, name) > 0.3  # Ajuster le seuil selon tes besoins
         ).paginate(page, per_page, False)
 
         # Sérialiser les produits
