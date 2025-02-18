@@ -1,5 +1,7 @@
 import { AuthStatus, useAuth } from "../../hooks/useAuth";
+import LoginButton from "../auth/LoginButton";
 import LogoutButton from "../auth/LogoutButton";
+import RegisterButton from "../auth/RegisterButton";
 import NavbarItem from "./NavbarItem";
 
 export default function NavbarLayout() {
@@ -21,8 +23,9 @@ export default function NavbarLayout() {
                         account != undefined 
                             ? <NavbarItem title={account.username} logo="👤"dest= "/" /> 
                             : <>
-                                <p>se connecter</p>
-                            </>
+                                <RegisterButton />
+                                <LoginButton />                                  
+                              </>
                     }
                 </li>
             </ul>
