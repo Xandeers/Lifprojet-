@@ -2,6 +2,7 @@ from flask import request, jsonify
 from api import db
 from .models import ProductIndustrial 
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func
 from . import product_bp
 
 #recupere tout les produits 
@@ -13,7 +14,7 @@ def get_all_products():
     per_page = 20 # Nombre de produits par page
 
     #récupérer les produits industriels avec pagination
-    products = ProductIndustrial.query.paginate(page, per_page, False)
+    products = ProductIndustrial.query.paginate(page=page, per_page=per_page,error_out=False)
 
     # Sérialiser les produits
     result = []
@@ -60,8 +61,10 @@ def get_products_nutriscore_x(letter):
 
     try:
         #récupérer les produits industriels avec pagination
-        products = ProductIndustrial.query.filter(nutriscore=letter).paginate(page, per_page, False)
+        products = ProductIndustrial.query.filter(ProductIndustrial.nutriscore == letter).paginate(page=page, per_page=per_page,error_out = False)
 
+        if not products.items:
+            return jsonify({'error': 'No products found for this nutriscore'}), 404
         # Sérialiser les produits
         result = []
         for product in products.items:
@@ -102,8 +105,8 @@ def search_product_by_name(name):
     try:
         # Utiliser la fonction pg_trgm pour une recherche floue sur le nom
         products = ProductIndustrial.query.filter(
-            SQLAlchemy.func.similarity(ProductIndustrial.name, name) > 0.3  # Ajuster le seuil selon tes besoins
-        ).paginate(page, per_page, False)
+            db.func.similarity(db.cast(ProductIndustrial.name, db.String), name) > 0.3  # Ajuster le seuil selon tes besoins
+        ).paginate(page=page, per_page=per_page, error_out=False)
 
         # Sérialiser les produits
         result = []
