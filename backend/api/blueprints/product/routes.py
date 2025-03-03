@@ -4,6 +4,8 @@ from .models import ProductIndustrial
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 from . import product_bp
+import requests
+
 
 #recupere tout les produits 
 
@@ -140,3 +142,86 @@ def search_product_by_name(name):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+@product_bp.route('industrial/get_product/<barcode>', methods=['GET'])
+def add_product(barcode):
+    try:
+        #Appel de l'api pour recuperer un produit avec un nom specifique 
+        url = f'https://world.openfoodfacts.org/api/v3/product/{barcode}.json'
+
+        #faire la requete pour recuperer le produit
+        response = requests.get(url)
+
+        if response.status_code !=200:
+            return jsonify({'error': 'Product not found or failed to fetch'}), 404
+
+        #recuperation des donner du produit sous forme de JSON
+        product_data = response.json()
+        print(product_data)
+
+
+        #verification si les donner existent
+        if 'product' not in product_data:
+            return jsonify({'error': 'product details not found'}), 404
+
+        product = product_data['product']
+
+        #extraire les information
+
+        name = product.get('product_name', 'N/A')
+        barcode = product.get('code', 'N/A')
+        carbohydrates =int(product.get('carbohydrates_100g', 0))
+        energy = int(product.get('energy_value',0))
+        fat = product.get('fat_100g', 0)
+        fiber = product.get('fiber_100g', 0)
+        proteins = product.get('proteins_100g',0)
+        salt = product.get('salt_100g', 0)
+        saturated_fat = product.get('saturated_fat_100g', 0)
+        fruits_vegetables_nuts_estimate = product.get('fruits_vegetables_nuts_estimate', 0)
+        sugars = product.get('sugars_100g', 0)
+        sodium = product.get('sodium_100g', 0)
+        nutriscore = product.get('nutriscore_grade', 'N/A')
+        image = product.get('image_url', '')
+        information = product.get('ingredients_text', '')
+
+
+        #ajout du produit dans la bd que si il n'y est pas 
+        existing_product=ProductIndustrial.query.filter_by(barcode=barcode).first()
+
+        if not existing_product:
+            new_product = ProductIndustrial(
+                barcode=barcode,
+                name=name,
+                carbohydrates=carbohydrates,
+                energy=energy,
+                fat=fat,
+                fiber=fiber,
+                proteins=proteins,
+                salt=salt,
+                saturated_fat=saturated_fat,
+                fruits_vegetables_nuts_estimate=fruits_vegetables_nuts_estimate,
+                sugars=sugars,
+                sodium=sodium,
+                nutriscore=nutriscore,
+                image=image,
+                information=information
+            )
+            db.session.add(new_product)
+            db.session.commit()
+            message = 'product added to the databaase.'
+        else:
+            message = 'product already exists in the database.'
+
+        #retourne les information du produit 
+        return jsonify({
+            'message': message,
+            'name': name,
+            'barcode': barcode,
+            'energy': energy,
+            'fat': fat,
+            'protein': proteins,
+            'nutriscore': nutriscore
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
