@@ -9,12 +9,13 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
         sqla_session = db.session
         ordered = True
     
+    id = fields.Int(dump_only=True)
     email = fields.Str(required=True, validate=validate.Email(error="Invalid email format"))
     password = fields.Str(load_only=True, required=True)
     is_admin = fields.Bool(dump_only=True)
 
 user_schema = UserSchema(exclude=['password_hash'])
-users_schemas = UserSchema(exclude=['password_hash'], many=True)
+users_schema = UserSchema(exclude=['password_hash'], many=True)
 
 class LoginSchema(ma.Schema):
     email = fields.Str(required=True, validate=validate.Email(error="Invalid email format"))
