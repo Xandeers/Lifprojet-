@@ -2,7 +2,10 @@ from flask import request, jsonify
 from api import db
 from .models import ProductIndustrial 
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func
 from . import product_bp
+import requests
+
 
 #recupere tout les produits 
 
@@ -13,7 +16,7 @@ def get_all_products():
     per_page = 20 # Nombre de produits par page
 
     #récupérer les produits industriels avec pagination
-    products = ProductIndustrial.query.paginate(page, per_page, False)
+    products = ProductIndustrial.query.paginate(page=page, per_page=per_page,error_out=False)
 
     # Sérialiser les produits
     result = []
@@ -60,8 +63,10 @@ def get_products_nutriscore_x(letter):
 
     try:
         #récupérer les produits industriels avec pagination
-        products = ProductIndustrial.query.filter(nutriscore=letter).paginate(page, per_page, False)
+        products = ProductIndustrial.query.filter(ProductIndustrial.nutriscore == letter).paginate(page=page, per_page=per_page,error_out = False)
 
+        if not products.items:
+            return jsonify({'error': 'No products found for this nutriscore'}), 404
         # Sérialiser les produits
         result = []
         for product in products.items:
@@ -102,8 +107,8 @@ def search_product_by_name(name):
     try:
         # Utiliser la fonction pg_trgm pour une recherche floue sur le nom
         products = ProductIndustrial.query.filter(
-            SQLAlchemy.func.similarity(ProductIndustrial.name, name) > 0.3  # Ajuster le seuil selon tes besoins
-        ).paginate(page, per_page, False)
+            db.func.similarity(db.cast(ProductIndustrial.name, db.String), name) > 0.3  # Ajuster le seuil selon tes besoins
+        ).paginate(page=page, per_page=per_page, error_out=False)
 
         # Sérialiser les produits
         result = []
@@ -137,3 +142,86 @@ def search_product_by_name(name):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+@product_bp.route('industrial/get_product/<barcode>', methods=['GET'])
+def add_product(barcode):
+    try:
+        #Appel de l'api pour recuperer un produit avec un nom specifique 
+        url = f'https://world.openfoodfacts.org/api/v3/product/{barcode}.json'
+
+        #faire la requete pour recuperer le produit
+        response = requests.get(url)
+
+        if response.status_code !=200:
+            return jsonify({'error': 'Product not found or failed to fetch'}), 404
+
+        #recuperation des donner du produit sous forme de JSON
+        product_data = response.json()
+        print(product_data)
+
+
+        #verification si les donner existent
+        if 'product' not in product_data:
+            return jsonify({'error': 'product details not found'}), 404
+
+        product = product_data['product']
+
+        #extraire les information
+
+        name = product.get('product_name', 'N/A')
+        barcode = product.get('code', 'N/A')
+        carbohydrates =int(product.get('carbohydrates_100g', 0))
+        energy = int(product.get('energy_value',0))
+        fat = product.get('fat_100g', 0)
+        fiber = product.get('fiber_100g', 0)
+        proteins = product.get('proteins_100g',0)
+        salt = product.get('salt_100g', 0)
+        saturated_fat = product.get('saturated_fat_100g', 0)
+        fruits_vegetables_nuts_estimate = product.get('fruits_vegetables_nuts_estimate', 0)
+        sugars = product.get('sugars_100g', 0)
+        sodium = product.get('sodium_100g', 0)
+        nutriscore = product.get('nutriscore_grade', 'N/A')
+        image = product.get('image_url', '')
+        information = product.get('ingredients_text', '')
+
+
+        #ajout du produit dans la bd que si il n'y est pas 
+        existing_product=ProductIndustrial.query.filter_by(barcode=barcode).first()
+
+        if not existing_product:
+            new_product = ProductIndustrial(
+                barcode=barcode,
+                name=name,
+                carbohydrates=carbohydrates,
+                energy=energy,
+                fat=fat,
+                fiber=fiber,
+                proteins=proteins,
+                salt=salt,
+                saturated_fat=saturated_fat,
+                fruits_vegetables_nuts_estimate=fruits_vegetables_nuts_estimate,
+                sugars=sugars,
+                sodium=sodium,
+                nutriscore=nutriscore,
+                image=image,
+                information=information
+            )
+            db.session.add(new_product)
+            db.session.commit()
+            message = 'product added to the databaase.'
+        else:
+            message = 'product already exists in the database.'
+
+        #retourne les information du produit 
+        return jsonify({
+            'message': message,
+            'name': name,
+            'barcode': barcode,
+            'energy': energy,
+            'fat': fat,
+            'protein': proteins,
+            'nutriscore': nutriscore
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

@@ -24,7 +24,7 @@ class ProductIndustrial(db.Model):
     sugars = db.Column(db.Integer, nullable=False)
     sodium= db.Column(db.Integer, nullable=False)
     #-------------------------
-    nutriscore = db.Column(db.Integer, nullable=False)
+    nutriscore = db.Column(db.String(100), nullable=False)
     date_added = db.Column(db.Date, default=datetime.utcnow().date)
     date_modified = db.Column(db.Date, default=datetime.utcnow().date)
     image = db.Column(db.String(255))
