@@ -12,7 +12,7 @@ Il faut juste Docker d'installé. Il y a pour l'instant le ``compose.dev.yml`` p
 docker compose -f compose.dev.yml up -d --build
 ```
 
-Le ``--build`` est à mettre la première fois ou quand on modifie ou pour quand on rajoute une bibliothèque, cela permet de reconstruire l'image du projet backend. En dehors de ces cas il est optionnel.
+Le ``--build`` est à mettre la première fois ou pour quand on rajoute une bibliothèque, cela permet de reconstruire l'image du projet backend. En dehors de ces cas il est optionnel.
 
 Une fois les 3 containers lancés:
 - API dispo sur http://localhost:5000
