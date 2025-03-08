@@ -1,10 +1,11 @@
-from flask import jsonify, session
+from flask import Blueprint, jsonify, session
 from webargs import fields
 from webargs.flaskparser import use_args
-from . import auth_bp
 from .models import User, user_schema
-from api import db
+from api.extensions import db
 from functools import wraps
+
+auth_bp = Blueprint('auth', __name__)
 
 def login_required(f):
     @wraps(f)

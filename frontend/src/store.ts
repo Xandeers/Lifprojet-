@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { combine, persist } from "zustand/middleware";
+import { combine } from "zustand/middleware";
 import { Account } from "./hooks/useAuth";
 
 export const useAccountStore = create(

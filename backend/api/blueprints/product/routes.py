@@ -1,11 +1,11 @@
-from flask import request, jsonify
+from flask import Blueprint, request, jsonify
 from api import db
 from .models import ProductIndustrial 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
-from . import product_bp
 import requests
 
+product_bp = Blueprint('product', __name__)
 
 #recupere tout les produits 
 
@@ -143,7 +143,7 @@ def search_product_by_name(name):
         return jsonify({'error': str(e)}), 500
 
 
-@product_bp.route('industrial/get_product/<barcode>', methods=['GET'])
+@product_bp.route('/industrial/get_product/<barcode>', methods=['GET'])
 def add_product(barcode):
     try:
         #Appel de l'api pour recuperer un produit avec un nom specifique 
@@ -159,27 +159,29 @@ def add_product(barcode):
         product_data = response.json()
         print(product_data)
 
-
         #verification si les donner existent
         if 'product' not in product_data:
             return jsonify({'error': 'product details not found'}), 404
 
         product = product_data['product']
+        nutriments = product['nutriments']
 
         #extraire les information
 
+        print(product)
+
         name = product.get('product_name', 'N/A')
         barcode = product.get('code', 'N/A')
-        carbohydrates =int(product.get('carbohydrates_100g', 0))
-        energy = int(product.get('energy_value',0))
-        fat = product.get('fat_100g', 0)
-        fiber = product.get('fiber_100g', 0)
-        proteins = product.get('proteins_100g',0)
-        salt = product.get('salt_100g', 0)
-        saturated_fat = product.get('saturated_fat_100g', 0)
-        fruits_vegetables_nuts_estimate = product.get('fruits_vegetables_nuts_estimate', 0)
-        sugars = product.get('sugars_100g', 0)
-        sodium = product.get('sodium_100g', 0)
+        carbohydrates =float(nutriments.get('carbohydrates_100g', 0))
+        energy = float(nutriments.get('energy_value',0))
+        fat = float(nutriments.get('fat_100g', 0))
+        fiber = float(nutriments.get('fiber_100g', 0))
+        proteins = float(nutriments.get('proteins_100g',0))
+        salt = float(nutriments.get('salt_100g', 0))
+        saturated_fat = float(nutriments.get('saturated-fat_100g', 0))
+        fruits_vegetables_nuts_estimate = float(nutriments.get('fruits_vegetables_nuts_estimate', 0))
+        sugars = float(nutriments.get('sugars_100g', 0))
+        sodium = float(nutriments.get('sodium_100g', 0))
         nutriscore = product.get('nutriscore_grade', 'N/A')
         image = product.get('image_url', '')
         information = product.get('ingredients_text', '')
