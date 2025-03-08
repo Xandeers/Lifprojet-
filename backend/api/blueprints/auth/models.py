@@ -2,6 +2,7 @@ from api.extensions import db
 from sqlalchemy import exists
 from sqlalchemy.orm import Mapped, mapped_column
 from bcrypt import checkpw, hashpw, gensalt
+from datetime import datetime, timezone
 
 # User Model
 class User(db.Model):
@@ -13,6 +14,8 @@ class User(db.Model):
     email: Mapped[str] = mapped_column(unique=True)
     password_hash: Mapped[str]
     is_admin: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
     
     @property
     def password(self):

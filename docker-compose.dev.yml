@@ -1,0 +1,59 @@
+services:
+  # API (Backend)
+  backend:
+    build:
+      context: backend
+      dockerfile: Dockerfile.dev
+    container_name: lifprojet_api
+    environment:
+      - DATABASE_URI=postgresql://api:api@lifprojet_db:5432/api_db
+      - SECRET_KEY=THIS-SECRET-KEY-IN-PROD
+    volumes:
+      - ./backend:/app
+    ports:
+      - 5000:5000
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - lifprojet_network
+
+  # PGSQL Database
+  db:
+    image: postgres:17.4-alpine
+    container_name: lifprojet_db
+    environment:
+      - POSTGRES_USER=api
+      - POSTGRES_PASSWORD=api
+      - POSTGRES_DB=api_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - lifprojet_network
+    healthcheck:
+      test: pg_isready -U pgweb -h 127.0.0.1
+      interval: 5s
+
+  # pgweb (GUI for PGSQL)
+  pgweb:
+    image: sosedoff/pgweb:latest
+    container_name: lifprojet_pgweb
+    environment:
+      - PGWEB_DATABASE_URL=postgres://api:api@lifprojet_db:5432/api_db?sslmode=disable
+    ports:
+      - 8081:8081
+    networks:
+      - lifprojet_network
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "nc", "-vz", "127.0.0.1", "8081"]
+      interval: 5s
+
+volumes:
+  postgres_data:
+
+networks:
+  lifprojet_network:
+    driver: bridge

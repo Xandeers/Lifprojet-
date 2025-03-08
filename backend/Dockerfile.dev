@@ -1,0 +1,18 @@
+FROM python:3.12.2-slim
+
+WORKDIR /app
+
+COPY . /app
+
+RUN apt update -y && \
+    apt install -y --no-install-recommends build-essential libpq-dev python3-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV PATH=/usr/lib/postgresql/X.Y/bin/:$PATH
+ENV FLASK_APP=run.py
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+EXPOSE 5000
+
+CMD ["python", "run.py"]

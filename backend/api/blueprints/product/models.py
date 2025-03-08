@@ -10,7 +10,7 @@ class ProductIndustrial(db.Model):
 
     # Fields
 
-    barcode = db.Column(db.Integer, primary_key=True)
+    barcode = db.Column(db.String, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     #--------macro liste--------
     carbohydrates= db.Column(db.Integer, nullable=False) # glucide
