@@ -17,6 +17,10 @@ def register_error_handlers(app):
     def method_not_allowed(error):
         return jsonify({"error": "Method Not Allowed"}), 405
     
+    @app.errorhandler(415)
+    def unsupported_media_type(error):
+        return jsonify({"error": "Unsupported Media Type"})
+    
     @app.errorhandler(422)
     def unprocessable_content(error):
         return jsonify({"error": "Unprocessable Content"}), 422

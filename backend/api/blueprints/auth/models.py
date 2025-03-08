@@ -1,51 +1,39 @@
-from api import db, ma
-from werkzeug.security import generate_password_hash, check_password_hash
+from api.extensions import db
+from sqlalchemy import exists
+from sqlalchemy.orm import Mapped, mapped_column
+from bcrypt import checkpw, hashpw, gensalt
 
 # User Model
 class User(db.Model):
     __tablename__ = 'users'
 
     # Fields
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), unique=True, nullable=False)
-    email = db.Column(db.String(100), unique=True, nullable=False)
-    password_hash = db.Column(db.String(100), nullable=False)
-    is_admin = db.Column(db.Boolean, default=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column(unique=True)
+    email: Mapped[str] = mapped_column(unique=True)
+    password_hash: Mapped[str]
+    is_admin: Mapped[bool] = mapped_column(default=False)
+    
+    @property
+    def password(self):
+        raise AttributeError("password cannot be read directly")
+    
+    @password.setter
+    def password(self, raw_password):
+        self.password_hash = hashpw(raw_password.encode("utf-8"), gensalt()).decode("utf-8")
 
-    def __init__(self, username, email, password, is_admin=False):
-        self.username = username
-        self.email = email
-        self.set_password(password)
-        self.is_admin = is_admin
+    def check_password(self, raw_password):
+        return checkpw(raw_password.encode("utf-8"), self.password_hash.encode("utf-8"))
 
-    # Methods to verify if user already exists
     @classmethod
     def is_username_taken(cls, username):
-        """Vérifie si un username est déjà pris"""
-        return db.session.query(cls.id).filter_by(username=username).first() is not None
+        return db.session.query(exists().where(cls.username == username)).scalar()
 
     @classmethod
     def is_email_taken(cls, email):
-        """Vérifie si un email est déjà utilisé"""
-        return db.session.query(cls.id).filter_by(email=email).first() is not None
+        return db.session.query(exists().where(cls.email == email)).scalar()
 
-    # Password methods
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-
-# User Schema for serialization
-class UserSchema(ma.SQLAlchemySchema):
-    class Meta:
-        model = User
-        ordered = True
-
-    id = ma.auto_field()
-    username = ma.auto_field()
-    email = ma.auto_field()
-    is_admin = ma.auto_field()
-
-user_schema = UserSchema()
-users_schema = UserSchema(many=True)
+    @classmethod
+    def is_user_admin(cls, user_id):
+        user = cls.query.get(user_id)
+        return user.is_admin if user else False
