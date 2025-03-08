@@ -1,6 +1,6 @@
 from flask import Flask
 from api.config import Config
-from api.extensions import db, migrate, ma, cors
+from api.extensions import db, migrate, ma, cors, swagger
 from api.blueprints import register_blueprints
 from api.errors import register_error_handlers
 
@@ -16,6 +16,7 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
+    swagger.init_app(app)
 
     # Register error handlers
     register_error_handlers(app)
