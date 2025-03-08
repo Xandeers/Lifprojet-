@@ -1,6 +1,5 @@
 from flask import Blueprint, jsonify, session, request
 from webargs import fields
-from webargs.flaskparser import use_args
 from .models import User
 from .schemas import user_schema, login_schema
 from api.extensions import db
@@ -16,7 +15,7 @@ def login_required(is_admin_required=False):
             # Check if user is connected
             if 'user_id' not in session:
                 return jsonify({
-                    'msg': 'Unauthorized access, need connection'
+                    'error': 'Unauthorized access, need connection'
                 }), 401
             # Check if user is admin (only if required)
             if is_admin_required:
@@ -88,6 +87,6 @@ def me():
     user = User.query.get(user_id)
     if not user:
         return jsonify({
-            'msg': 'User not found'
+            'error': 'User not found'
         }), 404
     return user_schema.jsonify(user), 200
