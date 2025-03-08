@@ -6,7 +6,7 @@ Deux façons de setup le projet: avec ou sans Docker.
 
 ### Avec Docker
 
-Il faut juste Docker d'installé. Il y a pour l'instant le ``docker-compose.dev.yml`` pour setup un environement de developpement.
+Il faut juste Docker d'installé. Il y a pour l'instant le ``compose.dev.yml`` pour setup un environement de developpement.
 
 ```bash
 docker compose -f compose.dev.yml up -d --build
