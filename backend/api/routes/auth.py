@@ -1,13 +1,13 @@
 from flask import Blueprint, jsonify, session, request
-from webargs import fields
-from .models import User
-from .schemas import user_schema, login_schema
+from api.models.user import User
+from api.schemas.user import user_schema, user_login_schema
 from api.extensions import db
 from functools import wraps
 from marshmallow import ValidationError
 
 auth_bp = Blueprint('auth', __name__)
 
+# Authentication route decorator
 def login_required(is_admin_required=False):
     def decorator(f):
         @wraps(f)
@@ -35,7 +35,7 @@ def register():
     try:
         user: User = user_schema.load(user_data)
     except ValidationError as error:
-        return jsonify(error.messages), 400
+        return jsonify({"error": error.messages}), 400
 
     # Check if username and email are already taken
     if User.is_username_taken(user_data['username']):
@@ -55,17 +55,15 @@ def register():
 # Login Route
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    login_data = request.get_json()
-
     # Serialize data to validate them
     try:
-        login_schema.load(login_data)
+        validated_data = user_login_schema.load(request.get_json())
     except ValidationError as error:
-        return jsonify(error.messages), 400
+        return jsonify({"error": error.messages}), 400
 
     # Search user
-    user = User.query.filter_by(email=login_data['email']).first()
-    if user and user.check_password(login_data['password']):
+    user = User.query.filter_by(email=validated_data.get('email')).first()
+    if user and user.check_password(validated_data.get('password')):
         # Login logic
         session['user_id'] = user.id 
         return user_schema.jsonify(user), 200
@@ -76,7 +74,7 @@ def login():
     
 @auth_bp.route('/logout', methods=["DELETE"])
 def logout():
-    response = jsonify({"msg": "Logout successful"})
+    response = jsonify({"msg": "Logout successfully"})
     session.pop('user_id', None)
     return response, 200
     

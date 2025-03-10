@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from api import db
-from .models import Recipe, recipe_schema, recipes_schema
+from api.models.recipe import Recipe, recipe_schema, recipes_schema
 
 recipe_bp = Blueprint("recipe", __name__)
 

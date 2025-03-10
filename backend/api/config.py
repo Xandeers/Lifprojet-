@@ -6,7 +6,6 @@ load_dotenv()
 
 class Config:
     SECRET_KEY = getenv('SECRET_KEY')
-    JSON_SORT_KEYS = False
 
     # SQLAlchemy ORM
     SQLALCHEMY_DATABASE_URI = getenv('DATABASE_URI')

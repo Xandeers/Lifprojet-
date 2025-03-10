@@ -1,13 +1,14 @@
 from flask import Flask
 from api.config import Config
 from api.extensions import db, migrate, ma, cors, swagger
-from api.blueprints import register_blueprints
+from api.routes import register_blueprints
 from api.errors import register_error_handlers
 
 def create_app():
     # Creation of Flask Instance + add configuration
     app = Flask(__name__)
     app.config.from_object(Config)
+    app.json.sort_keys = False
     
     # Initialization of Flask Extensions
     cors.init_app(app, 

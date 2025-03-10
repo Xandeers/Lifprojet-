@@ -4,7 +4,7 @@ if [[ $1 == "build" ]]; then
 	docker buildx build -t lifprojet_api -f ./backend/Dockerfile.dev backend/
 elif [[ $1 == "up" ]]; then
 	echo "Launching containers..."
-	docker compose -f compose.dev.yml up -d --build
+	docker compose -f compose.dev.yml up -d
 elif [[ $1 == "down" ]]; then
 	echo "Stopping containers..."
 	docker compose -f compose.dev.yml down

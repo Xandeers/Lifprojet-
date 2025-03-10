@@ -1,6 +1,6 @@
 from api.extensions import db, ma
 from marshmallow import fields, validate
-from .models import User
+from api.models.user import User
 
 class UserSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -10,6 +10,7 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
         ordered = True
     
     id = fields.Int(dump_only=True)
+    username = fields.Str(required=True, validate=validate.Length(1, 20))
     email = fields.Str(required=True, validate=validate.Email(error="Invalid email format"))
     password = fields.Str(load_only=True, required=True)
     is_admin = fields.Bool(dump_only=True)
@@ -17,8 +18,8 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
 user_schema = UserSchema(exclude=['password_hash'])
 users_schema = UserSchema(exclude=['password_hash'], many=True)
 
-class LoginSchema(ma.Schema):
+class UserLoginSchema(ma.Schema):
     email = fields.Str(required=True, validate=validate.Email(error="Invalid email format"))
     password = fields.Str(required=True)
 
-login_schema = LoginSchema()
+user_login_schema = UserLoginSchema()

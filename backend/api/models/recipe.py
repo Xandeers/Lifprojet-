@@ -1,5 +1,6 @@
 from api import db, ma
-from api.blueprints.auth.models import User, UserSchema
+from api.models.user import User
+from api.schemas.user import UserSchema
 
 # 🔹 Modèle Recipe (ajout de la relation avec User)
 class Recipe(db.Model):
