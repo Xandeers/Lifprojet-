@@ -8,6 +8,9 @@ elif [[ $1 == "up" ]]; then
 elif [[ $1 == "down" ]]; then
 	echo "Stopping containers..."
 	docker compose -f compose.dev.yml down
+elif [[ $1 == "shell" ]]; then
+	echo "Launching API shell..."
+	docker exec -it lifprojet_api /bin/bash
 else
-	echo "Command not found, only available: build | up | down"
+	echo "Command not found, only available: build | up | down | shell"
 fi

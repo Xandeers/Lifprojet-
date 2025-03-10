@@ -45,10 +45,10 @@ def search_product():
     
     # product already exists
     if product:
-        return products_industrial_schema.dump(product)
+        return product_industrial_schema.dump(product)
     # product not exists => search on OpenFoodFacts
     if barcode:
-        thread = Thread(target=fetch_new_product, args=(barcode,))
+        thread = Thread(target=fetch_new_product_with_barcode, args=(barcode,))
         thread.start()
         return jsonify({
             "message": "Product adding to database from OPFF you will be notified"
@@ -57,7 +57,7 @@ def search_product():
         "error": "Product not found"
     }), 404
 
-def fetch_new_product(barcode):
+def fetch_new_product_with_barcode(barcode):
     with current_app.app_context():
         #Appel de l'api pour recuperer un produit avec un nom specifique 
         url = f'https://world.openfoodfacts.org/api/v3/product/{barcode}.json'
