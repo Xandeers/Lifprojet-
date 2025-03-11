@@ -1,8 +1,8 @@
-from flask import request, jsonify
+from flask import Blueprint, request, jsonify
 from api import db
-from backend.api.blueprints.recipe.models import Recipe, recipe_schema, recipes_schema
-from . import recipe_bp
+from api.models.recipe import Recipe, recipe_schema, recipes_schema
 
+recipe_bp = Blueprint("recipe", __name__)
 
 # 🔹 Récupérer toutes les recettes
 @recipe_bp.route("/", methods=["GET"])

@@ -1,49 +1,29 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_marshmallow import Marshmallow
-from flask_cors import CORS
-from dotenv import load_dotenv
-from os import getenv
-
-# Load environment variables from .env file
-load_dotenv()
-
-# Flask Extensions
-db = SQLAlchemy()
-ma = Marshmallow()
+from api.config import Config
+from api.extensions import db, migrate, ma, cors, swagger
+from api.routes import register_blueprints
+from api.errors import register_error_handlers
 
 def create_app():
-    # Flask App Instance
+    # Creation of Flask Instance + add configuration
     app = Flask(__name__)
-
-    # Flask App Settings
-    app.secret_key = getenv('SECRET_KEY')
-    app.config['SQLALCHEMY_DATABASE_URI'] = getenv('DATABASE_URI')
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config.from_object(Config)
+    app.json.sort_keys = False
     
-    # METTRE EN STRICT/LAX + SECURE EN PROD HTTPS
-    app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['SESSION_COOKIE_SECURE'] = False
-    # app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-
     # Initialization of Flask Extensions
+    cors.init_app(app, 
+                  supports_credentials=True, 
+                  origins=["http://127.0.0.1:5173", "http://localhost:5173"])
     db.init_app(app)
+    migrate.init_app(app, db)
     ma.init_app(app)
-   
-    # CORS
-    CORS(app,
-        supports_credentials=True,
-        origins=["http://127.0.0.1:5173", "http://localhost:5173"]
-    )
+    swagger.init_app(app)
+
+    # Register error handlers
+    register_error_handlers(app)
 
     # Register Blueprint
-    from .blueprints.auth import auth_bp
-    from .blueprints.product import product_bp
-    #from .blueprints.recipe import recipe_bp
-
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(product_bp)
-   # app.register_blueprint(recipe_bp)
+    register_blueprints(app)
 
     # Return Flask app instance
     return app

@@ -1,15 +1,15 @@
-from flask import request, jsonify
-from api import db
-from .models import ProductIndustrial 
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func
-from . import product_bp
+from flask import Blueprint, request, jsonify, current_app
+from api.extensions import db
+from api.models.product import ProductIndustrial 
+from api.schemas.product import product_industrial_schema, products_industrial_schema
 import requests
+from threading import Thread
 
+product_industrial_bp = Blueprint('product_industrial', __name__)
 
 #recupere tout les produits 
 
-@product_bp.route('/industrial/all', methods=['GET'])
+@product_industrial_bp.route('/all', methods=['GET'])
 def get_all_products():
     # Récupérer le paramètre 'page' depuis l'URL (page=2, par défaut page=1)
     page = request.args.get('page', default=1, type=int)  # Page par défaut = 1 si non précisé
@@ -19,37 +19,108 @@ def get_all_products():
     products = ProductIndustrial.query.paginate(page=page, per_page=per_page,error_out=False)
 
     # Sérialiser les produits
-    result = []
-    for product in products.items:
-        result.append({
-            'barcode': product.barcode,
-            'name': product.name,
-            'carbohydrates': product.carbohydrates,
-            'energy': product.energy,
-            'fat': product.fat,
-            'fiber': product.fiber,
-            'proteins': product.proteins,
-            'salt': product.salt,
-            'saturated_fat': product.saturated_fat,
-            'fruits_vegetables_nuts_estimate': product.fruits_vegetables_nuts_estimate,
-            'sugars': product.sugars,
-            'sodium': product.sodium,
-            'nutriscore': product.nutriscore,
-            'image': product.image,
-            'information': product.information,
-        })
-    # Retourner les produits sous forme de JSON avec les informations de pagination
     return jsonify({
-        'products': result,
-        'total': products.total,
-        'pages': products.pages,
-        'current_page': products.page
+        "total": products.total,
+        "current_page": products.page,
+        "pages": products.pages,
+        "products": products_industrial_schema.dump(products)
     })
 
-    
-#recupere tout les produit qui on un nutriscore qui a été prealablement choisi 
+# Nouvelle route de recherche d'un produit par barcode ou nom
+@product_industrial_bp.route('/search', methods=['GET'])
+def search_product():
+    barcode = request.args.get('barcode')
+    name = request.args.get('name')
 
-@product_bp.route('/industrial/nutriscore-<letter>', methods=['GET'])
+    # Query product
+    if barcode:
+        product = ProductIndustrial.query.filter_by(barcode=barcode).first()
+    elif name:
+        # RECHERCHE FLOU A AMELIORER (se servir de l'extension pgsql approprié)
+        product = ProductIndustrial.query.filter(ProductIndustrial.name.ilike(f"%{name}%")).first()
+    else:
+        return jsonify({
+            "error": "Please give a barcode or name params"
+        }), 400
+    
+    # product already exists
+    if product:
+        return product_industrial_schema.dump(product)
+    # product not exists => search on OpenFoodFacts
+    if barcode:
+        thread = Thread(target=fetch_new_product_with_barcode, args=(barcode,))
+        thread.start()
+        return jsonify({
+            "message": "Product adding to database from OPFF you will be notified"
+        })
+    return jsonify({
+        "error": "Product not found"
+    }), 404
+
+def fetch_new_product_with_barcode(barcode):
+    with current_app.app_context():
+        #Appel de l'api pour recuperer un produit avec un nom specifique 
+        url = f'https://world.openfoodfacts.org/api/v3/product/{barcode}.json'
+
+        #faire la requete pour recuperer le produit
+        response = requests.get(url)
+
+        if response.status_code !=200:
+            return jsonify({'error': 'Product not found or failed to fetch'}), 404
+
+        #recuperation des donner du produit sous forme de JSON
+        product_data = response.json()
+        print(product_data)
+
+        #verification si les donner existent
+        if 'product' not in product_data:
+            return jsonify({'error': 'product details not found'}), 404
+
+        # adding product
+        product = product_data['product']
+        nutriments = product['nutriments']
+
+        #extraire les information
+        name = product.get('product_name', 'N/A')
+        barcode = product.get('code', 'N/A')
+        carbohydrates =float(nutriments.get('carbohydrates_100g', 0))
+        energy = float(nutriments.get('energy_value',0))
+        fat = float(nutriments.get('fat_100g', 0))
+        fiber = float(nutriments.get('fiber_100g', 0))
+        proteins = float(nutriments.get('proteins_100g',0))
+        salt = float(nutriments.get('salt_100g', 0))
+        saturated_fat = float(nutriments.get('saturated-fat_100g', 0))
+        fruits_vegetables_nuts_estimate = float(nutriments.get('fruits_vegetables_nuts_estimate', 0))
+        sugars = float(nutriments.get('sugars_100g', 0))
+        sodium = float(nutriments.get('sodium_100g', 0))
+        nutriscore = product.get('nutriscore_grade', 'N/A')
+        image = product.get('image_url', '')
+        information = product.get('ingredients_text', '')
+
+        new_product = ProductIndustrial(
+            barcode=barcode,
+            name=name,
+            carbohydrates=carbohydrates,
+            energy=energy,
+            fat=fat,
+            fiber=fiber,
+            proteins=proteins,
+            salt=salt,
+            saturated_fat=saturated_fat,
+            fruits_vegetables_nuts_estimate=fruits_vegetables_nuts_estimate,
+            sugars=sugars,
+            sodium=sodium,
+            nutriscore=nutriscore,
+            image=image,
+            information=information
+        )
+
+        db.session.add(new_product)
+        db.session.commit()
+
+# recupere tout les produit qui on un nutriscore qui a été prealablement choisi 
+
+@product_industrial_bp.route('/nutriscore-<letter>', methods=['GET'])
 def get_products_nutriscore_x(letter):
 
     #verification du nutriscore et retourne une erreur en cas de recherche non correct
@@ -99,7 +170,7 @@ def get_products_nutriscore_x(letter):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@product_bp.route('/industrial/<name>', methods=['GET'])
+@product_industrial_bp.route('/<name>', methods=['GET'])
 def search_product_by_name(name):
     # Récupérer le paramètre 'page' depuis l'URL (page=2, par défaut page=1)
     page = request.args.get('page', default=1, type=int)  # Page par défaut = 1 si non précisé
@@ -143,7 +214,7 @@ def search_product_by_name(name):
         return jsonify({'error': str(e)}), 500
 
 
-@product_bp.route('industrial/get_product/<barcode>', methods=['GET'])
+@product_industrial_bp.route('/get_product/<barcode>', methods=['GET'])
 def add_product(barcode):
     try:
         #Appel de l'api pour recuperer un produit avec un nom specifique 
@@ -159,27 +230,29 @@ def add_product(barcode):
         product_data = response.json()
         print(product_data)
 
-
         #verification si les donner existent
         if 'product' not in product_data:
             return jsonify({'error': 'product details not found'}), 404
 
         product = product_data['product']
+        nutriments = product['nutriments']
 
         #extraire les information
 
+        print(product)
+
         name = product.get('product_name', 'N/A')
         barcode = product.get('code', 'N/A')
-        carbohydrates =int(product.get('carbohydrates_100g', 0))
-        energy = int(product.get('energy_value',0))
-        fat = product.get('fat_100g', 0)
-        fiber = product.get('fiber_100g', 0)
-        proteins = product.get('proteins_100g',0)
-        salt = product.get('salt_100g', 0)
-        saturated_fat = product.get('saturated_fat_100g', 0)
-        fruits_vegetables_nuts_estimate = product.get('fruits_vegetables_nuts_estimate', 0)
-        sugars = product.get('sugars_100g', 0)
-        sodium = product.get('sodium_100g', 0)
+        carbohydrates =float(nutriments.get('carbohydrates_100g', 0))
+        energy = float(nutriments.get('energy_value',0))
+        fat = float(nutriments.get('fat_100g', 0))
+        fiber = float(nutriments.get('fiber_100g', 0))
+        proteins = float(nutriments.get('proteins_100g',0))
+        salt = float(nutriments.get('salt_100g', 0))
+        saturated_fat = float(nutriments.get('saturated-fat_100g', 0))
+        fruits_vegetables_nuts_estimate = float(nutriments.get('fruits_vegetables_nuts_estimate', 0))
+        sugars = float(nutriments.get('sugars_100g', 0))
+        sodium = float(nutriments.get('sodium_100g', 0))
         nutriscore = product.get('nutriscore_grade', 'N/A')
         image = product.get('image_url', '')
         information = product.get('ingredients_text', '')
