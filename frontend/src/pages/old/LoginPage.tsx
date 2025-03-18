@@ -1,6 +1,6 @@
 import { Navigate } from "react-router";
-import LoginForm from "../components/auth/LoginForm";
-import { AuthStatus, useAuth } from "../hooks/useAuth";
+import LoginForm from "../../components/auth/LoginForm";
+import { AuthStatus, useAuth } from "../../hooks/useAuth";
 import LayoutPage from "./LayoutPage";
 
 export default function LoginPage() {

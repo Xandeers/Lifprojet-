@@ -1,4 +1,4 @@
-import RegisterForm from "../components/auth/RegisterForm";
+import RegisterForm from "../../components/auth/RegisterForm";
 import LayoutPage from "./LayoutPage";
 
 export default function RegisterPage() {

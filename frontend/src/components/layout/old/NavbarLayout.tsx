@@ -1,7 +1,7 @@
-import { AuthStatus, useAuth } from "../../hooks/useAuth";
-import LoginButton from "../auth/LoginButton";
-import LogoutButton from "../auth/LogoutButton";
-import RegisterButton from "../auth/RegisterButton";
+import { AuthStatus, useAuth } from "../../../hooks/useAuth";
+import LoginButton from "../../auth/LoginButton";
+import LogoutButton from "../../auth/LogoutButton";
+import RegisterButton from "../../auth/RegisterButton";
 import NavbarItem from "./NavbarItem";
 
 export default function NavbarLayout() {

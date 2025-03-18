@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
-import HeaderComponent from "../components/layout/HeaderLayout";
-import { PageTitle } from "../components/layout/PageTitle";
+import HeaderComponent from "../../components/layout/old/HeaderLayout";
+import { PageTitle } from "../../components/layout/old/PageTitle";
 
 type Props = {
     title: string;
