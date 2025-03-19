@@ -5,6 +5,7 @@ import RegisterPage from "./pages/auth/RegisterPage";
 import LoginPage from "./pages/auth/LoginPage.tsx";
 import RecipeExplorePage from "./pages/recipe/RecipeExplorePage.tsx";
 import MePage from "./pages/auth/MePage.tsx";
+import CircleLoader from "./components/layout/CircleLoader.tsx";
 
 export default function App() {
   const { authenticate, status } = useAuth();
@@ -14,7 +15,11 @@ export default function App() {
   }, []);
 
   if (status == AuthStatus.Unknown) {
-    return <p>Chargement...</p>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <CircleLoader />
+      </div>
+    );
   }
 
   return (
