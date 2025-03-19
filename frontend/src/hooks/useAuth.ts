@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useAccountStore } from "../store";
-import fetchAPI from "../utils/api.ts";
+import { fetchAPI } from "../utils/api.ts";
+import { useToasts } from "../contexts/ToastContext.tsx";
 
 export type Account = {
   id: number;
@@ -17,6 +18,7 @@ export enum AuthStatus {
 
 export function useAuth() {
   const { account, setAccount } = useAccountStore();
+  const { pushToast } = useToasts();
   let status;
   switch (account) {
     case null:
@@ -31,15 +33,28 @@ export function useAuth() {
   }
 
   const authenticate = useCallback(() => {
-    fetchAPI("GET", "/auth/me")
-      .then(async (res) => setAccount(await res.json()))
+    fetchAPI<Account>("GET", "/auth/me")
+      .then(setAccount)
       .catch(() => setAccount(null));
   }, []);
 
   const login = useCallback((email: string, password: string) => {
-    fetchAPI("POST", "/auth/login", { email, password })
-      .then(async (res) => setAccount(await res.json()))
-      .catch(() => setAccount(null));
+    fetchAPI<Account>("POST", "/auth/login", { email, password })
+      .then((data) => {
+        setAccount(data);
+        pushToast({
+          content: `Salut ${data.username} !`,
+          type: "success",
+        });
+      })
+      .catch((err) => {
+        setAccount(null);
+        pushToast({
+          title: "Erreur de connexion",
+          content: JSON.stringify(err),
+          type: "danger",
+        });
+      });
   }, []);
 
   const logout = useCallback(() => {

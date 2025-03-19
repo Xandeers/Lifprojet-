@@ -5,6 +5,7 @@ type Field = {
   label: string;
   type?: string;
   placeholder?: string;
+  required?: boolean;
 };
 
 type Props = {
@@ -28,9 +29,9 @@ export default function Form({
   return (
     <form
       onSubmit={handleSubmit}
-      className="p-6 rounded-lg shadow-md space-y-4"
+      className="rounded-lg space-y-4"
     >
-      {fields.map(({ name, label, type = "text", placeholder }: Field) => (
+      {fields.map(({ name, label, type = "text", placeholder, required = true }: Field) => (
         <div key={name}>
           <label htmlFor={name} className="block font-medium text-gray-700">
             {label}
@@ -41,6 +42,7 @@ export default function Form({
             id={name}
             placeholder={placeholder}
             className="mt-1 w-full border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            required={required}
           />
         </div>
       ))}

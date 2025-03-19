@@ -7,20 +7,27 @@
 
 const baseURL = "http://127.0.0.1:5000";
 
-const fetchAPI = (
+export async function fetchAPI<T>(
   method: "GET" | "POST" | "PUT" | "DELETE",
   endpoint: string,
-  data?: Object
-) => {
-  return fetch(baseURL + endpoint, {
+  data?: Record<string, unknown>
+): Promise<T> {
+  const body = data ? JSON.stringify(data) : undefined;
+  const r = await fetch(baseURL + endpoint, {
     method,
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
     },
     credentials: "include",
-    body: JSON.stringify(data),
+    body,
   });
-};
+  if (r.ok) return r.json() as Promise<T>;
+  throw new ApiError(r.status, await r.json());
+}
 
-export default fetchAPI;
+class ApiError extends Error {
+  constructor(public status: number, public data: Record<string, unknown>) {
+    super();
+  }
+}

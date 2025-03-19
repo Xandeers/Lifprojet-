@@ -62,7 +62,7 @@ function Toasts() {
     setToasts((v) => v.filter((t) => t != toast));
   };
   return (
-    <div className="flex flex-col fixed right-4 top-4 gap-3">
+    <div className="flex flex-col fixed right-4 top-4 gap-3 z-99">
       <AnimatePresence>
         {toasts.map((toast: ToastItem) => (
           <motion.div

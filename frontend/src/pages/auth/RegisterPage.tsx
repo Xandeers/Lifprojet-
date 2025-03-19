@@ -1,36 +1,34 @@
-import { useToasts } from "../../contexts/ToastContext";
-import fetchAPI from "../../utils/api.ts";
+import { useToasts } from "../../contexts/ToastContext.tsx";
 import Form from "../../components/layout/Form.tsx";
 import Layout from "../../components/layout/Layout.tsx";
+import { fetchAPI } from "../../utils/api.ts";
+import { Account } from "../../hooks/useAuth.ts";
+import { Navigate } from "react-router";
 
 export default function RegisterPage() {
   const { pushToast } = useToasts();
 
-  const handleRegister = async (
-    formData: Record<string, FormDataEntryValue>
-  ) => {
-    const res = await fetchAPI("POST", "/auth/register", formData);
-    const data = await res.json();
-    if (!res.ok) {
-      pushToast({
-        title: "Erreur",
-        content: JSON.stringify(data),
-        duration: 2,
-        type: "danger",
-      });
-    } else {
-      pushToast({
-        title: "Succès",
-        content: "vous avez correctemennt été inscris",
-        duration: 2,
-        type: "success",
-      });
-    }
+  const handleRegister = (formData: Record<string, FormDataEntryValue>) => {
+    fetchAPI<Account>("POST", "/auth/register", formData)
+      .then(() => {
+        pushToast({
+          content: "Inscription réalisée avec succès",
+          type: "success",
+        });
+        return <Navigate to="/" replace />;
+      })
+      .catch((err) =>
+        pushToast({
+          title: "Erreur lors de l'inscription",
+          content: JSON.stringify(err),
+          type: "danger",
+        })
+      );
   };
 
   return (
-    <Layout>
-      <h1>Inscription</h1>
+    <Layout guestRequired>
+      <h1 className="text-3xl font-semibold pb-3">Inscription</h1>
       <Form
         fields={[
           {

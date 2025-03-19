@@ -1,18 +1,18 @@
 import { useAuth } from "./useAuth";
 
 export function useAccount() {
-    const {account} = useAuth();
+  const { account } = useAuth();
 
-    if(!account) {
-        throw new Error("User not authenticated");
-    }
+  if (!account) {
+    throw new Error("User not authenticated");
+  }
 
-    const isAdmin = (): boolean => {
-        return account?.is_admin;
-    };
+  const isAdmin = (): boolean => {
+    return account?.is_admin;
+  };
 
-    return {
-        account,
-        isAdmin
-    }
+  return {
+    account,
+    isAdmin,
+  };
 }
