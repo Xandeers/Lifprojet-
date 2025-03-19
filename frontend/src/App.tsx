@@ -7,6 +7,7 @@ import RecipeExplorePage from "./pages/recipe/RecipeExplorePage.tsx";
 import MePage from "./pages/auth/MePage.tsx";
 import CircleLoader from "./components/layout/CircleLoader.tsx";
 import NotFoundPage from "./pages/error/NotFoundPage.tsx";
+import RecipePage from "./pages/recipe/RecipePage.tsx";
 
 export default function App() {
   const { authenticate, status } = useAuth();
@@ -28,6 +29,7 @@ export default function App() {
       <Routes>
         {/* Recipe Routes */}
         <Route path="/" element={<RecipeExplorePage />} />
+        <Route path="/recipe/:slug" element={<RecipePage />} />
         {/* Auth Routes */}
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
