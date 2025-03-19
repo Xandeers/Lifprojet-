@@ -6,6 +6,7 @@ import LoginPage from "./pages/auth/LoginPage.tsx";
 import RecipeExplorePage from "./pages/recipe/RecipeExplorePage.tsx";
 import MePage from "./pages/auth/MePage.tsx";
 import CircleLoader from "./components/layout/CircleLoader.tsx";
+import NotFoundPage from "./pages/error/NotFoundPage.tsx";
 
 export default function App() {
   const { authenticate, status } = useAuth();
@@ -31,6 +32,8 @@ export default function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/me" element={<MePage />} />
+        {/* 404 Not Found */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );
