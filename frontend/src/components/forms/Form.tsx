@@ -1,11 +1,8 @@
 import { FormEvent } from "react";
+import Input, { InputProps } from "./Input.tsx";
 
-type Field = {
-  name: string;
+type Field = InputProps & {
   label: string;
-  type?: string;
-  placeholder?: string;
-  required?: boolean;
 };
 
 type Props = {
@@ -36,12 +33,10 @@ export default function Form({
           <label htmlFor={name} className="block font-medium text-gray-700">
             {label}
           </label>
-          <input
+          <Input
             type={type}
             name={name}
-            id={name}
             placeholder={placeholder}
-            className="mt-1 w-full border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500"
             required={required}
           />
         </div>
