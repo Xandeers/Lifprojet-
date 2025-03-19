@@ -4,21 +4,21 @@ import { useEffect } from "react";
 import RegisterPage from "./pages/auth/RegisterPage";
 
 export default function App() {
-    const {authenticate, status} = useAuth();
+  const { authenticate, status } = useAuth();
 
-    useEffect(() => {
-        authenticate();
-    }, []);
+  useEffect(() => {
+    authenticate();
+  }, []);
 
-    if (status == AuthStatus.Unknown) {
-        return <p>Chargement...</p>
-    }
-    
-    return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/register" element={<RegisterPage />} />
-            </Routes>
-        </BrowserRouter>
-    );
+  if (status == AuthStatus.Unknown) {
+    return <p>Chargement...</p>;
+  }
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/register" element={<RegisterPage />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }

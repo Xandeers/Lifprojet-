@@ -1,5 +1,6 @@
 from flask import Flask, jsonify
 
+
 def register_error_handlers(app):
     @app.errorhandler(400)
     def bad_request(error):
@@ -12,15 +13,15 @@ def register_error_handlers(app):
     @app.errorhandler(404)
     def not_found(error):
         return jsonify({"error": "Not Found"}), 404
-    
+
     @app.errorhandler(405)
     def method_not_allowed(error):
         return jsonify({"error": "Method Not Allowed"}), 405
-    
+
     @app.errorhandler(415)
     def unsupported_media_type(error):
         return jsonify({"error": "Unsupported Media Type"})
-    
+
     @app.errorhandler(422)
     def unprocessable_content(error):
         return jsonify({"error": "Unprocessable Content"}), 422
