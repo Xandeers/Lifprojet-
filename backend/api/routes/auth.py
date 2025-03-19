@@ -68,6 +68,7 @@ def login():
     user = User.query.filter_by(email=validated_data.get("email")).first()
     if user and user.check_password(validated_data.get("password")):
         # Login logic
+        session.permanent = True
         session["user_id"] = user.id
         return user_schema.jsonify(user), 200
     else:

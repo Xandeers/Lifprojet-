@@ -5,14 +5,13 @@ import { Navigate } from "react-router";
 
 export default function Layout({
   children,
-  authRequired = false,
   guestRequired = false,
-}: PropsWithChildren & { authRequired?: boolean; guestRequired?: boolean }) {
+}: PropsWithChildren & { guestRequired?: boolean }) {
   const { status } = useAuth();
-  if (authRequired && status != AuthStatus.Authenticated)
-    return <Navigate to="/login" replace />;
-  if (guestRequired && status != AuthStatus.Guest)
+
+  if ((guestRequired && status != AuthStatus.Guest) || AuthStatus.Unknown)
     return <Navigate to="/" replace />;
+
   return (
     <>
       <Header />

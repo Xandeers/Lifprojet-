@@ -8,7 +8,7 @@ export default function Logout({ className }: { className: string }) {
   const handleClick = () => {
     logout();
     pushToast({
-      type: "default",
+      type: "success",
       content: "Vous avez été deconnecté",
     });
     return <Navigate to="/" replace />;

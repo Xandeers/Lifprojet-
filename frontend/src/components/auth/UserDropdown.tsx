@@ -26,7 +26,7 @@ export default function UserDropdown() {
         >
           {status === AuthStatus.Guest && (
             <div onClick={handleClick} className="text-sm flex flex-col">
-              <Link className={menuItemClasses} to="/me">
+              <Link className={menuItemClasses} to="/login">
                 Se connecter
               </Link>
               <Link className={menuItemClasses} to="/register">
