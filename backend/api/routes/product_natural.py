@@ -4,7 +4,7 @@ from api.models.product_natural import ProductNatural
 
 product_natural_bp = Blueprint("product_natural", __name__)
 
-#Récupérer tous les produits naturels
+#2Récupérer tous les produits naturels
 @product_natural_bp.route("/products_natural", methods=["GET"])
 def get_all_products():
     products = ProductNatural.query.all()
@@ -32,7 +32,7 @@ def get_all_products():
         for product in products
     ])
 
-#Récupérer un produit par ID
+#3Récupérer un produit par ID
 @product_natural_bp.route("/products_natural/<int:product_id>", methods=["GET"])
 def get_product_by_id(product_id):
     product = ProductNatural.query.get(product_id)
@@ -60,7 +60,7 @@ def get_product_by_id(product_id):
         "updated_at": product.updated_at.isoformat(),
     })
 
-#Ajouter un nouveau produit naturel
+#4Ajouter un nouveau produit naturel
 @product_natural_bp.route("/products_natural", methods=["POST"])
 def add_product():
     data = request.json
@@ -90,7 +90,7 @@ def add_product():
 
     return jsonify({"message": "Produit ajouté avec succès", "id": new_product.id}), 201
 
-#Supprimer un produit par ID
+#5Supprimer un produit par ID
 @product_natural_bp.route("/products_natural/<int:product_id>", methods=["DELETE"])
 def delete_product(product_id):
     product = ProductNatural.query.get(product_id)
@@ -103,17 +103,20 @@ def delete_product(product_id):
 
     return jsonify({"message": "Produit supprimé avec succès"}), 200
 
-from flask import Blueprint, jsonify, request
-from api.extensions import db
-from api.models.product_natural import ProductNatural
+#6. Rechercher des produits par mot-clé dans le nom
+@product_natural_bp.route("/products_natural/search", methods=["GET"])
+def search_products():
+    query = request.args.get("q", "").strip()
 
-product_natural_bp = Blueprint("product_natural", __name__)
+    if not query:
+        return jsonify({"error": "Veuillez fournir un mot-clé pour la recherche."}), 400
 
-# ✅ 1. Récupérer tous les produits naturels
-@product_natural_bp.route("/products_natural", methods=["GET"])
-def get_all_products():
-    products = ProductNatural.query.all()
-    
+    # Recherche insensible à la casse
+    products = ProductNatural.query.filter(ProductNatural.name.ilike(f"%{query}%")).all()
+
+    if not products:
+        return jsonify({"message": "Aucun produit trouvé pour ce mot-clé."}), 404
+
     return jsonify([
         {
             "id": product.id,
@@ -121,89 +124,55 @@ def get_all_products():
             "image": product.image,
             "information": product.information,
             "energy": product.energy,
-            "fat": product.fat,
-            "saturated_fat": product.saturated_fat,
-            "carbohydrates": product.carbohydrates,
-            "sugars": product.sugars,
-            "fiber": product.fiber,
             "proteins": product.proteins,
-            "salt": product.salt,
-            "sodium": product.sodium,
-            "fruits_vegetables_nuts_estimate": product.fruits_vegetables_nuts_estimate,
-            "nutriscore": product.nutriscore,
-            "created_at": product.created_at.isoformat(),
-            "updated_at": product.updated_at.isoformat(),
+            "carbohydrates": product.carbohydrates,
+            "fat": product.fat,
+            "nutriscore": product.nutriscore
         }
         for product in products
     ])
 
-# ✅ 2. Récupérer un produit par ID
-@product_natural_bp.route("/products_natural/<int:product_id>", methods=["GET"])
-def get_product_by_id(product_id):
-    product = ProductNatural.query.get(product_id)
-    
-    if not product:
-        return jsonify({"error": "Produit non trouvé"}), 404
+# Classer les aliments selon un nutriment sera utile pour les recette et la creation de programme 
 
-    return jsonify({
-        "id": product.id,
-        "name": product.name,
-        "image": product.image,
-        "information": product.information,
-        "energy": product.energy,
-        "fat": product.fat,
-        "saturated_fat": product.saturated_fat,
-        "carbohydrates": product.carbohydrates,
-        "sugars": product.sugars,
-        "fiber": product.fiber,
-        "proteins": product.proteins,
-        "salt": product.salt,
-        "sodium": product.sodium,
-        "fruits_vegetables_nuts_estimate": product.fruits_vegetables_nuts_estimate,
-        "nutriscore": product.nutriscore,
-        "created_at": product.created_at.isoformat(),
-        "updated_at": product.updated_at.isoformat(),
-    })
+@product_natural_bp.route("/products_natural/sort", methods=["GET"])
+def sort_products():
+    nutrient = request.args.get("nutrient", "").strip()
+    order = request.args.get("order", "desc").lower()  # "asc" ou "desc" (par défaut desc)
 
-# ✅ 3. Ajouter un nouveau produit naturel
-@product_natural_bp.route("/products_natural", methods=["POST"])
-def add_product():
-    data = request.json
+    # Liste des nutriments valides
+    valid_nutrients = {
+        "energy": ProductNatural.energy,
+        "fat": ProductNatural.fat,
+        "saturated_fat": ProductNatural.saturated_fat,
+        "carbohydrates": ProductNatural.carbohydrates,
+        "sugars": ProductNatural.sugars,
+        "fiber": ProductNatural.fiber,
+        "proteins": ProductNatural.proteins,
+        "salt": ProductNatural.salt,
+        "sodium": ProductNatural.sodium,
+        "fruits_vegetables_nuts_estimate": ProductNatural.fruits_vegetables_nuts_estimate,
+    }
 
-    if ProductNatural.is_product_taken(data["name"]):
-        return jsonify({"error": "Ce produit existe déjà"}), 400
+    if nutrient not in valid_nutrients:
+        return jsonify({"error": "Nutriment invalide. Choisissez parmi: " + ", ".join(valid_nutrients.keys())}), 400
 
-    new_product = ProductNatural(
-        name=data["name"],
-        image=data.get("image", ""),
-        information=data.get("information", ""),
-        energy=data["energy"],
-        fat=data["fat"],
-        saturated_fat=data["saturated_fat"],
-        carbohydrates=data["carbohydrates"],
-        sugars=data["sugars"],
-        fiber=data.get("fiber", 0),
-        proteins=data["proteins"],
-        salt=data.get("salt", 0),
-        sodium=data.get("sodium", 0),
-        fruits_vegetables_nuts_estimate=data.get("fruits_vegetables_nuts_estimate", 0),
-        nutriscore=data.get("nutriscore", ""),
-    )
+    # Trier en fonction de l'ordre
+    if order == "asc":
+        products = ProductNatural.query.order_by(valid_nutrients[nutrient].asc()).all()
+    else:
+        products = ProductNatural.query.order_by(valid_nutrients[nutrient].desc()).all()
 
-    db.session.add(new_product)
-    db.session.commit()
+    if not products:
+        return jsonify({"message": "Aucun produit trouvé."}), 404
 
-    return jsonify({"message": "Produit ajouté avec succès", "id": new_product.id}), 201
-
-#Supprimer un produit par ID
-@product_natural_bp.route("/products_natural/<int:product_id>", methods=["DELETE"])
-def delete_product(product_id):
-    product = ProductNatural.query.get(product_id)
-
-    if not product:
-        return jsonify({"error": "Produit non trouvé"}), 404
-
-    db.session.delete(product)
-    db.session.commit()
-
-    return jsonify({"message": "Produit supprimé avec succès"}), 200
+    return jsonify([
+        {
+            "id": product.id,
+            "name": product.name,
+            "image": product.image,
+            "information": product.information,
+            nutrient: getattr(product, nutrient),  # Ajoute seulement la valeur du nutriment choisi
+            "nutriscore": product.nutriscore
+        }
+        for product in products
+    ])
