@@ -1,51 +1,50 @@
-from api import db, ma
-from api.models.user import User
-from api.schemas.user import UserSchema
+from api.extensions import db
+from datetime import datetime, timezone
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Text, Integer, Boolean, ForeignKey, String
+from typing import List
 
-# 🔹 Modèle Recipe (ajout de la relation avec User)
 class Recipe(db.Model):
-    __tablename__ = 'recipes'
 
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(255), nullable=False)
-    tag = db.Column(db.String(100))
-    content = db.Column(db.Text, nullable=False)
-    likes = db.Column(db.Integer, default=0)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    is_public = db.Column(db.Boolean, default=True)
-    nutriscore = db.Column(db.String(1), nullable=False)
+    __tablename__ = "recipes"
 
-    # 🔗 Ajout de la clé étrangère vers User
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    tag: Mapped[str] = mapped_column(String(100), nullable=True)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    likes: Mapped[int] = mapped_column(Integer, default=0)
+    is_public: Mapped[bool] = mapped_column(Boolean, default=True)
+    nutriscore: Mapped[str] = mapped_column(String(1), nullable=False)
+    
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
+    
+    created_at: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(
+        default=datetime.now(timezone.utc),
+        onupdate=datetime.now(timezone.utc)
+    )
 
-    def __init__(self, title, tag, content, nutriscore, user_id, is_public=True):
-        self.title = title
-        self.tag = tag
-        self.content = content
-        self.nutriscore = nutriscore
-        self.is_public = is_public
-        self.user_id = user_id
+    # Relations
+    author = relationship("User", back_populates="recipes")
+    comments = relationship("Comment", back_populates="recipe", cascade="all, delete-orphan")
 
     def add_like(self):
         self.likes += 1
         db.session.commit()
 
-# 🔹 Schéma Recipe (ajout de l'auteur)
-class RecipeSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Recipe
-        load_instance = True
+    @classmethod
+    def is_recipe_taken(cls, title: str) -> bool:
+        return db.session.query(db.exists().where(cls.title == title)).scalar()
 
-    id = ma.auto_field()
-    title = ma.auto_field()
-    tag = ma.auto_field()
-    content = ma.auto_field()
-    likes = ma.auto_field()
-    created_at = ma.auto_field()
-    is_public = ma.auto_field()
-    nutriscore = ma.auto_field()
-    user_id = ma.auto_field()
-    author = ma.Nested(UserSchema, only=("id", "username"))  # Infos minimales sur l'auteur
+class Comment(db.Model):
+    __tablename__ = 'comments'
 
-recipe_schema = RecipeSchema()
-recipes_schema = RecipeSchema(many=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
+
+    recipe_id: Mapped[int] = mapped_column(ForeignKey('recipes.id'), nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
+
+    recipe = relationship("Recipe", back_populates="comments")
+    user = relationship("User")
