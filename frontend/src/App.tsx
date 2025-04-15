@@ -1,30 +1,42 @@
 import { BrowserRouter, Route, Routes } from "react-router";
-import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
 import { AuthStatus, useAuth } from "./hooks/useAuth";
 import { useEffect } from "react";
-import RegisterPage from "./pages/RegisterPage";
-import ProfilePage from "./pages/ProfilePage";
+import RegisterPage from "./pages/auth/RegisterPage";
+import LoginPage from "./pages/auth/LoginPage.tsx";
+import RecipeExplorePage from "./pages/recipe/RecipeExplorePage.tsx";
+import MePage from "./pages/auth/MePage.tsx";
+import CircleLoader from "./components/layout/CircleLoader.tsx";
+import NotFoundPage from "./pages/error/NotFoundPage.tsx";
+import RecipePage from "./pages/recipe/RecipePage.tsx";
 
 export default function App() {
-    const {authenticate, status} = useAuth();
+  const { authenticate, status } = useAuth();
 
-    useEffect(() => {
-        authenticate();
-    }, []);
+  useEffect(() => {
+    authenticate();
+  }, []);
 
-    if (status == AuthStatus.Unknown) {
-        return <p>Chargement...</p>
-    }
-    
+  if (status == AuthStatus.Unknown) {
     return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
-            </Routes>
-        </BrowserRouter>
+      <div className="flex items-center justify-center min-h-screen">
+        <CircleLoader />
+      </div>
     );
+  }
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Recipe Routes */}
+        <Route path="/" element={<RecipeExplorePage />} />
+        <Route path="/recipe/:slug" element={<RecipePage />} />
+        {/* Auth Routes */}
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/me" element={<MePage />} />
+        {/* 404 Not Found */}
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }

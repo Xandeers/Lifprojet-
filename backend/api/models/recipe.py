@@ -2,9 +2,10 @@ from api import db, ma
 from api.models.user import User
 from api.schemas.user import UserSchema
 
+
 # 🔹 Modèle Recipe (ajout de la relation avec User)
 class Recipe(db.Model):
-    __tablename__ = 'recipes'
+    __tablename__ = "recipes"
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
@@ -16,7 +17,7 @@ class Recipe(db.Model):
     nutriscore = db.Column(db.String(1), nullable=False)
 
     # 🔗 Ajout de la clé étrangère vers User
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
     def __init__(self, title, tag, content, nutriscore, user_id, is_public=True):
         self.title = title
@@ -29,6 +30,7 @@ class Recipe(db.Model):
     def add_like(self):
         self.likes += 1
         db.session.commit()
+
 
 # 🔹 Schéma Recipe (ajout de l'auteur)
 class RecipeSchema(ma.SQLAlchemyAutoSchema):
@@ -45,7 +47,10 @@ class RecipeSchema(ma.SQLAlchemyAutoSchema):
     is_public = ma.auto_field()
     nutriscore = ma.auto_field()
     user_id = ma.auto_field()
-    author = ma.Nested(UserSchema, only=("id", "username"))  # Infos minimales sur l'auteur
+    author = ma.Nested(
+        UserSchema, only=("id", "username")
+    )  # Infos minimales sur l'auteur
+
 
 recipe_schema = RecipeSchema()
 recipes_schema = RecipeSchema(many=True)

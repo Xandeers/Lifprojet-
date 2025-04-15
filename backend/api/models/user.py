@@ -4,9 +4,10 @@ from sqlalchemy.orm import Mapped, mapped_column
 from bcrypt import checkpw, hashpw, gensalt
 from datetime import datetime, timezone
 
+
 # User Model
 class User(db.Model):
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
     # Fields
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -15,15 +16,19 @@ class User(db.Model):
     password_hash: Mapped[str]
     is_admin: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
-    updated_at: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
-    
+    updated_at: Mapped[datetime] = mapped_column(
+        default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc)
+    )
+
     @property
     def password(self):
         raise AttributeError("password cannot be read directly")
-    
+
     @password.setter
     def password(self, raw_password):
-        self.password_hash = hashpw(raw_password.encode("utf-8"), gensalt()).decode("utf-8")
+        self.password_hash = hashpw(raw_password.encode("utf-8"), gensalt()).decode(
+            "utf-8"
+        )
 
     def check_password(self, raw_password):
         return checkpw(raw_password.encode("utf-8"), self.password_hash.encode("utf-8"))

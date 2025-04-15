@@ -1,18 +1,19 @@
+import { useNavigate } from "react-router";
 import { useAuth } from "./useAuth";
 
 export function useAccount() {
-    const {account} = useAuth();
+  const { account } = useAuth();
+  const navigate = useNavigate();
+  if (!account) {
+    navigate("/");
+  }
 
-    if(!account) {
-        throw new Error("User not authenticated");
-    }
+  const isAdmin = (): boolean | undefined => {
+    return account?.is_admin;
+  };
 
-    const isAdmin = (): boolean => {
-        return account?.is_admin;
-    };
-
-    return {
-        account,
-        isAdmin
-    }
+  return {
+    account,
+    isAdmin,
+  };
 }
