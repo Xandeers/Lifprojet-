@@ -14,6 +14,7 @@ class Recipe(db.Model):
     thumbnail_url: Mapped[str] = mapped_column(nullable=True)
     instructions: Mapped[str] = mapped_column(Text)  # Markdown format
     author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    nutriscore: Mapped[str]
     created_at: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(
         default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc)
