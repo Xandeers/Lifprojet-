@@ -21,6 +21,7 @@ class User(db.Model):
     preferences: Mapped[dict] = mapped_column(
         MutableDict.as_mutable(JSONB), default=dict, nullable=True
     )
+    avatar: Mapped[str] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(
         default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc)
