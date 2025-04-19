@@ -1,0 +1,13 @@
+POST http://localhost:5000/upload/recipe_thumbnail HTTP/1.1
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="recipe_thumbnail.png"
+Content-Type: image/png
+
+<@path_to_your_image/recipe_thumbnail.png>
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+GET http://localhost:5000/upload/recipe_thumbnail/673ee86db79d4fafb4b2a04cc3856b36_image.png HTTP/1.1
