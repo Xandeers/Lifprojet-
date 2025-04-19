@@ -5,6 +5,7 @@ from api.extensions import db
 from api.models.product import Product
 from pathlib import Path
 
+
 def resolve_category(code):
     if code == "06":
         return "drink"
@@ -14,7 +15,8 @@ def resolve_category(code):
         return "fat"
     else:
         return "other"
-    
+
+
 def parse_value(value):
     if value == "-" or not value:
         return -1
@@ -22,6 +24,7 @@ def parse_value(value):
         return float(value.replace(",", "."))
     except ValueError:
         return -1
+
 
 @click.command("import-ciqual", help="Populate products table with Ciqual dataset")
 @with_appcontext
@@ -35,7 +38,7 @@ def import_ciqual():
     grp_codes = ["02", "03", "04", "05", "06", "09"]
 
     # populate
-    added = -1 # count number of row added
+    added = -1  # count number of row added
     for _, row in df.iterrows():
         if row["alim_grp_code"] not in grp_codes:
             continue
@@ -59,14 +62,14 @@ def import_ciqual():
                 sugars=sugars,
                 saturated_fat=saturated_fat,
                 salt=salt,
-                fruits_veg=-1, # pas dispo dans Ciqual
+                fruits_veg=-1,  # pas dispo dans Ciqual
                 fibers=fibers,
-                source="ciqual"
+                source="ciqual",
             )
             db.session.add(product)
             db.session.commit()
             added += 1
         except Exception as e:
             click.echo(f"Error at line: {row.get('alim_nom_fr', '?')} - {e}")
-        
+
     print(f"{added} products added to database")
