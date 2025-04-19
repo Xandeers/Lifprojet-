@@ -27,5 +27,5 @@ class Product(db.Model):
     fruits_veg: Mapped[float]
     fibers: Mapped[float]
 
-    source: Mapped[str]
-    barcode: Mapped[str] = mapped_column(nullable=True)
+    source: Mapped[str] # "ciqual", "off"...
+    barcode: Mapped[str] = mapped_column(nullable=True) # pour OFF seulement
