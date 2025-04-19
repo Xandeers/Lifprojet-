@@ -1,9 +1,10 @@
 from api.extensions import db
 from sqlalchemy.orm import Mapped, mapped_column
+from enum import Enum as PyEnum
 from sqlalchemy import Enum
 
 
-class ProductCategory(str, Enum):
+class ProductCategory(PyEnum):
     drink = "drink"
     cheese = "cheese"
     fat = "fat"
@@ -16,7 +17,7 @@ class Product(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(unique=True)
     category: Mapped[ProductCategory] = mapped_column(
-        Enum(ProductCategory)
+        Enum(ProductCategory, name="product_category")
     )  # 4 algos pour le Nutriscore selon catégorie: "drink", "cheese", "fat", "other"
 
     energy: Mapped[float]
@@ -27,5 +28,5 @@ class Product(db.Model):
     fruits_veg: Mapped[float]
     fibers: Mapped[float]
 
-    source: Mapped[str] # "ciqual", "off"...
-    barcode: Mapped[str] = mapped_column(nullable=True) # pour OFF seulement
+    source: Mapped[str]  # "ciqual", "off"...
+    barcode: Mapped[str] = mapped_column(nullable=True)  # pour OFF seulement

@@ -3,7 +3,7 @@ from api.config import Config
 from api.extensions import db, migrate, ma, cors, swagger
 from api.routes import register_blueprints
 from api.errors import register_error_handlers
-
+from api.commands import populate_products
 
 def create_app():
     # Creation of Flask Instance + add configuration
@@ -27,6 +27,9 @@ def create_app():
 
     # Register Blueprint
     register_blueprints(app)
+
+    # Register commands
+    app.cli.add_command(populate_products)
 
     # Return Flask app instance
     return app
