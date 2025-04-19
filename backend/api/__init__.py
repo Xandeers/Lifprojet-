@@ -3,7 +3,7 @@ from api.config import Config
 from api.extensions import db, migrate, ma, cors, swagger
 from api.routes import register_blueprints
 from api.errors import register_error_handlers
-from api.commands import populate_products
+from api.commands.import_ciqual import import_ciqual
 
 def create_app():
     # Creation of Flask Instance + add configuration
@@ -29,7 +29,7 @@ def create_app():
     register_blueprints(app)
 
     # Register commands
-    app.cli.add_command(populate_products)
+    app.cli.add_command(import_ciqual)
 
     # Return Flask app instance
     return app
