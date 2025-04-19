@@ -1,23 +1,23 @@
 services:
-  # API (Backend)
-  backend:
-    build:
-      context: backend
-      dockerfile: Dockerfile.dev
-    container_name: lifprojet_api
-    environment:
-      - DATABASE_URI=postgresql://api:api@lifprojet_db:5432/api_db
-      - SECRET_KEY=THIS-SECRET-KEY-IN-PROD
-    volumes:
-      - ./backend:/app
-    ports:
-      - 5000:5000
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - lifprojet_network
-    restart: unless-stopped
+  # # API (Backend)
+  # backend:
+  #   build:
+  #     context: backend
+  #     dockerfile: Dockerfile.dev
+  #   container_name: lifprojet_api
+  #   environment:
+  #     - DATABASE_URI=postgresql://api:api@lifprojet_db:5432/api_db
+  #     - SECRET_KEY=THIS-SECRET-KEY-IN-PROD
+  #   volumes:
+  #     - ./backend:/app
+  #   ports:
+  #     - 50000:5000
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   networks:
+  #     - lifprojet_network
+  #   restart: unless-stopped
 
   # PGSQL Database
   db:
@@ -35,6 +35,8 @@ services:
       test: pg_isready -U pgweb -h 127.0.0.1
       interval: 5s
     restart: unless-stopped
+    ports:
+      - 5432:5432
 
   # pgweb (GUI for PGSQL)
   pgweb:
