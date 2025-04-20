@@ -2,7 +2,6 @@ from flask import Blueprint, request, jsonify
 from sqlalchemy import text
 from api.extensions import db
 from api.schemas.product import products_schema
-import requests
 
 product_bp = Blueprint("product", __name__)
 
