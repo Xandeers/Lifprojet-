@@ -9,7 +9,9 @@ dependencies = [
     "bcrypt==4.3.0",
     "fastapi[all]==0.115.12",
     "itsdangerous==2.2.0",
+    "pandas==2.2.3",
     "psycopg2-binary==2.9.10",
     "python-dotenv==1.1.0",
     "sqlalchemy==2.0.40",
+    "xlrd==2.0.1",
 ]

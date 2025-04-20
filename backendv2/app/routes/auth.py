@@ -39,7 +39,7 @@ async def logout(response: Response):
     return HTTPException(status_code=204, detail="Logout successful")
 
 @router.get("/me")
-async def me(current_user_id: int = Depends(get_current_user_id), db: Session = Depends(get_db)) -> UserInfo:
+async def get_profile(current_user_id: int = Depends(get_current_user_id), db: Session = Depends(get_db)) -> UserInfo:
     user_service = UserService(db)
     user = user_service.get_user_by_id(current_user_id)
 

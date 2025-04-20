@@ -21,13 +21,9 @@ def get_db():
         db.close()
 
 @contextmanager
-def db_session() -> Generator[Session, Any, None]:
+def get_session() -> Generator[Session, Any, None]:
     db = SessionLocal()
     try:
         yield db
-        db.commit()
-    except:
-        db.rollback()
-        raise
     finally:
         db.close()

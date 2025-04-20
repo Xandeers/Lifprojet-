@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.middlewares.auth import auth_middleware
-from app.routes import auth
+from app.routes import auth, product
 
 app = FastAPI()
 
@@ -23,3 +23,4 @@ app.middleware("http")(auth_middleware)
 
 # routes
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(product.router, prefix="/product", tags=["product"])
