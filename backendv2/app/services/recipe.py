@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session, selectinload
 
 from app.models import Recipe, Product, RecipeIngredient
@@ -115,3 +115,17 @@ class RecipeService:
         # delete
         self.db.delete(recipe)
         self.db.commit()
+
+    def search_recipes_fts(self, query: str):
+        sql = text("""
+                       SELECT 
+                           *,
+                           ts_rank(search_field, websearch_to_tsquery('french', :query)) AS rank
+                       FROM recipes
+                       WHERE search_field @@ websearch_to_tsquery('french', :query)
+                       ORDER BY rank DESC
+                       LIMIT 15
+                   """)
+        ids = [row[0] for row in self.db.execute(sql, {"query": query}).fetchall()]
+        recipes = self.db.query(Recipe).filter(Recipe.id.in_(ids)).all()
+        return recipes

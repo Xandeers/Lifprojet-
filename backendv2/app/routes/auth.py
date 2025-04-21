@@ -3,7 +3,7 @@ from fastapi.params import Depends
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.schemas.user import UserCreate, UserBase, UserLogin, UserPublicBase
+from app.schemas.user import UserCreate, UserBase, UserLogin
 from app.services.user import UserService
 from app.utils.session import create_session_token, set_session_cookie, delete_session_cookie, get_current_user_id
 

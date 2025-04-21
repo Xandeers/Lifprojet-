@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.params import Depends
 from sqlalchemy.orm import Session
+from typing import List
 
 from app.database import get_db
 from app.schemas.recipe import RecipeCreate, RecipeBase
@@ -10,8 +11,11 @@ from app.utils.session import get_current_user_id
 router = APIRouter()
 
 @router.get("/search")
-def search_by_text(query: str):
-    return "todo"
+def search_by_text(query: str, db: Session = Depends(get_db)) -> List[RecipeBase]:
+    recipe_service = RecipeService(db)
+    results = recipe_service.search_recipes_fts(query)
+    recipes = [RecipeBase.model_validate(recipe) for recipe in results]
+    return recipes
 
 @router.get("/feed")
 def feed():

@@ -1,7 +1,6 @@
 from slugify import slugify
-from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import Text, ForeignKey, String, Integer, event, Column
+from sqlalchemy import Text, ForeignKey, String, Integer, event
 from datetime import datetime, timezone
 from app.database import Base
 import secrets
