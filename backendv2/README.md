@@ -22,7 +22,12 @@ docker compose up -d
 uv sync # installe les dépendences
 ```
 
-5) Lancer le serveur de développement
+5) Effectuer les migrations pour créer les tables:
+```bash
+uv run alembic upgrade head
+```
+
+6) Lancer le serveur de développement
 ```bash
 uv run fastapi run
 ```
