@@ -25,7 +25,7 @@ def parse_value(value):
         return 0
 
 @cli.command()
-def import_from_ciqual():
+def import_ciqual():
     print("Importing from CIQUAL")
 
     filepath = Path("data/ciqual_2020.xls")

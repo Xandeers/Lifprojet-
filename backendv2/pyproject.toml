@@ -1,7 +1,7 @@
 [project]
-name = "backendv2"
+name = "lifprojet-api"
 version = "0.1.0"
-description = "Add your description here"
+description = "API du projet"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
