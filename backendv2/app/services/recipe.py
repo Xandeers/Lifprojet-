@@ -1,7 +1,7 @@
-from sqlalchemy import select, text
+from sqlalchemy import select, text, func
 from sqlalchemy.orm import Session, selectinload
 
-from app.models import Recipe, Product, RecipeIngredient
+from app.models import Recipe, Product, RecipeIngredient, RecipeLike
 from app.schemas.recipe import RecipeCreate, RecipeBase
 
 
@@ -25,7 +25,10 @@ class RecipeService:
         if recipe is None:
             raise ValueError(f"Recipe {slug} not found")
 
-        return RecipeBase.model_validate(recipe)
+        likes_count = self.db.query(func.count(RecipeLike.recipe_id)).filter(RecipeLike.recipe_id == recipe.id).scalar()
+
+        validated = RecipeBase.model_validate(recipe)
+        return validated.model_copy(update={"likes_count": likes_count})
 
     def create_recipe(self, recipe_data: RecipeCreate, author_id: int) -> Recipe:
         # if self.is_recipe_exists(recipe_data.title):
@@ -129,3 +132,26 @@ class RecipeService:
         ids = [row[0] for row in self.db.execute(sql, {"query": query}).fetchall()]
         recipes = self.db.query(Recipe).filter(Recipe.id.in_(ids)).all()
         return recipes
+
+    def like_recipe(self, slug: str, user_id: int) -> bool:
+        # check if recipe exists
+        recipe = self.db.query(Recipe).filter(Recipe.slug == slug).first()
+        if not recipe:
+            raise ValueError(f"Recipe [{slug}] not found")
+
+        # check if already liked
+        existing_like = self.db.query(RecipeLike).filter_by(user_id=user_id, recipe_id=recipe.id).first()
+
+        # unlike
+        if existing_like:
+            self.db.delete(existing_like)
+            self.db.commit()
+            return False
+
+        # like
+        new_like = RecipeLike(user_id=user_id, recipe_id=recipe.id)
+        self.db.add(new_like)
+        self.db.commit()
+
+        return True
+

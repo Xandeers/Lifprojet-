@@ -57,3 +57,13 @@ def delete(slug: str, db: Session = Depends(get_db), current_user_id: int = Depe
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return HTTPException(status_code=200, detail="Recipe deleted successfully")
+
+@router.put("/{slug}/like")
+def like(slug: str, db: Session = Depends(get_db), current_user_id: int = Depends(get_current_user_id)):
+    recipe_service = RecipeService(db)
+    try:
+        liked = recipe_service.like_recipe(slug, current_user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return {"liked": liked}

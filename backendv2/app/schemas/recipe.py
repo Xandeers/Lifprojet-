@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -39,6 +39,7 @@ class RecipeBase(RecipeCreate):
     nutriscore: int
     ingredients: List[RecipeIngredientBase]
     author: UserPublicBase
+    likes_count: int = 0
     created_at: datetime
     updated_at: datetime
 

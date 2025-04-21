@@ -1,6 +1,6 @@
 from slugify import slugify
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import Text, ForeignKey, String, Integer, event
+from sqlalchemy import Text, ForeignKey, String, Integer, event, UniqueConstraint
 from datetime import datetime, timezone
 from app.database import Base
 import secrets
@@ -28,7 +28,7 @@ class Recipe(Base):
     # Relationships
     author = relationship("User", back_populates="recipes")
     ingredients = relationship("RecipeIngredient", back_populates="recipe", cascade="all, delete-orphan")
-
+    likes = relationship("RecipeLike", backref="recipe", cascade="all, delete-orphan")
 
     def calculate_nutriscore(self):
         total_negative = 0
@@ -84,6 +84,15 @@ class RecipeIngredient(Base):
     def model_validate(cls, ingredient):
         pass
 
+class RecipeLike(Base):
+    __tablename__ = "recipe_likes"
+
+    recipe_id: Mapped[int] = mapped_column(ForeignKey("recipes.id"), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "recipe_id", name="unique_like"),
+    )
 
 class Comment(Base):
     __tablename__ = "comments"
