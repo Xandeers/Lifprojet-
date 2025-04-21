@@ -1,6 +1,5 @@
 .venv
-.env*
-instance/
 __pycache__
-.vscode
-uploads
+.idea
+.env
+upload/*
