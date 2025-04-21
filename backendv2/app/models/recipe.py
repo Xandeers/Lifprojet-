@@ -1,39 +1,32 @@
+from slugify import slugify
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Text, ForeignKey, String, Integer, event
 from datetime import datetime, timezone
 from app.database import Base
 
-def score_to_grade(score):
-    if score <= -1:
-        return "A"
-    elif score <= 2:
-        return "B"
-    elif score <= 10:
-        return "C"
-    elif score <= 18:
-        return "D"
-    else:
-        return "E"
-
 
 class Recipe(Base):
     __tablename__ = "recipes"
 
+    # Fields
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str]
     slug: Mapped[str] = mapped_column(unique=True)
     description: Mapped[str] = mapped_column(Text)
     thumbnail_url: Mapped[str] = mapped_column(nullable=True)
     instructions: Mapped[str] = mapped_column(Text)  # Markdown format
-    author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    nutriscore: Mapped[str]
+    nutriscore: Mapped[int]
     created_at: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(
         default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc)
     )
 
+    author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+
+    # Relationships
     author = relationship("User", back_populates="recipes")
-    ingredients = relationship("RecipeIngredient", back_populates="recipe")
+    ingredients = relationship("RecipeIngredient", back_populates="recipe", cascade="all, delete-orphan")
+
 
     def calculate_nutriscore(self):
         total_negative = 0
@@ -66,29 +59,28 @@ class Recipe(Base):
             total_positive += positive_points
 
         total_score = total_negative - total_positive
-        return score_to_grade(total_score)
+        return total_score
 
     def update_nutriscore(self):
         self.nutriscore = self.calculate_nutriscore()
-
-
-@event.listens_for(Recipe, "before_insert")
-@event.listens_for(Recipe, "before_update")
-def update_recipe_nutriscore(mapper, connection, target):
-    target.update_nutriscore()
 
 
 class RecipeIngredient(Base):
     __tablename__ = "recipes_ingredients"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    recipe_id: Mapped[int] = mapped_column(ForeignKey("recipes.id"))
-    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"))
     quantity: Mapped[float]
     unit: Mapped[str]
 
+    recipe_id: Mapped[int] = mapped_column(ForeignKey("recipes.id"))
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"))
+
     recipe = relationship("Recipe", back_populates="ingredients")
     product = relationship("Product")
+
+    @classmethod
+    def model_validate(cls, ingredient):
+        pass
 
 
 class Comment(Base):
@@ -96,6 +88,7 @@ class Comment(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     content: Mapped[str] = mapped_column(String(500))
+
     author_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
     parent_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("comments.id"), nullable=True
@@ -105,3 +98,14 @@ class Comment(Base):
     parent = relationship(
         "Comment", remote_side=lambda: [Comment.id], backref="children", lazy="joined"
     )
+
+
+@event.listens_for(Recipe, "before_insert")
+@event.listens_for(Recipe, "before_update")
+def update_recipe_nutriscore(mapper, connection, target):
+    target.update_nutriscore()
+
+@event.listens_for(Recipe, "before_insert")
+def generate_slug(mapper, connection, target: Recipe):
+    if not target.slug:
+        target.slug = slugify(target.title)
