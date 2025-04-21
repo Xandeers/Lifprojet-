@@ -28,8 +28,8 @@ class RecipeService:
         return RecipeBase.model_validate(recipe)
 
     def create_recipe(self, recipe_data: RecipeCreate, author_id: int) -> Recipe:
-        if self.is_recipe_exists(recipe_data.title):
-            raise ValueError(f'Recipe [{recipe_data.title}] already exists')
+        # if self.is_recipe_exists(recipe_data.title):
+        #    raise ValueError(f'Recipe [{recipe_data.title}] already exists')
 
         recipe = Recipe(
             title=recipe_data.title,
