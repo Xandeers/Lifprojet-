@@ -47,6 +47,8 @@ uv run -m app.cli import-ciqual
 Il faut renseigner sa clé dans le **.env** et avoir un peu de crédit, j'utilise le modèle **gpt-3.5-turbo** 
 qui est pas cher et fonctionne bien avec le bon prompt mais il manque de créativité tout de même...
 
+__Note: Il faut que les idéntifiants du faker dans le .env correspondent à un vrai compte inscrit__
+
 ```bash
 uv run -m app.cli fake-recipes [nbr de recettes] [optionnel: URL de miniature par défaut rien]
 ```
