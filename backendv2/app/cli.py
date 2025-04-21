@@ -86,7 +86,7 @@ def import_ciqual():
 ############################# FAKE RECIPES #############################
 
 @cli.command()
-def fake_recipes(number: Annotated[int, typer.Argument()]):
+def fake_recipes(number: Annotated[int, typer.Argument()], default_thumbnail: Annotated[str, typer.Argument()] = ""):
     print("Generating fakes recipes with OpenAI as AI Wrapper")
 
     # openai connection
@@ -139,6 +139,7 @@ def fake_recipes(number: Annotated[int, typer.Argument()]):
         output = response.output_text
         try:
             recipe_data = json.loads(output)
+            recipe_data["thumbnail_url"] = default_thumbnail
             post_response = session.post(f"{BASE_URL}/recipe", json=recipe_data)
             if post_response.status_code == 200:
                 print(f"✅ Recette {recipe_data["title"]} crée")

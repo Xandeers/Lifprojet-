@@ -37,8 +37,16 @@ uv run fastapi run
 
 ## Dataset
 
-Le projet propose un script pour peupler la table **products** avec le dataset Ciqual, vous pouvez l'executer:
+- Le projet propose un script pour peupler la table **products** avec le dataset Ciqual, vous pouvez l'executer:
 
 ```bash
-uv run -m app.cli
+uv run -m app.cli import-ciqual
+```
+
+- Le projet propose aussi un script pour remplir la table **recipes** avec des recettes générés par GPT de OpenAI.
+Il faut renseigner sa clé dans le **.env** et avoir un peu de crédit, j'utilise le modèle **gpt-3.5-turbo** 
+qui est pas cher et fonctionne bien avec le bon prompt mais il manque de créativité tout de même...
+
+```bash
+uv run -m app.cli fake-recipes [nbr de recettes] [optionnel: URL de miniature par défaut rien]
 ```
