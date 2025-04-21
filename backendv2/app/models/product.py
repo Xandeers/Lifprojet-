@@ -27,8 +27,6 @@ class Product(Base):
     fruits_veg: Mapped[float]
     fibers: Mapped[float]
 
-    search_field = Column(TSVECTOR) # FTS
-
     source: Mapped[str]  # "ciqual", "off"...
     barcode: Mapped[str] = mapped_column(nullable=True)  # pour OFF seulement
 

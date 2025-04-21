@@ -1,19 +1,19 @@
-"""update table
+"""init
 
-Revision ID: 20c4bbdb14c9
-Revises: 6f4a59e415eb
-Create Date: 2025-04-20 22:52:06.765082
+Revision ID: 2cfa9b6647d9
+Revises: 
+Create Date: 2025-04-21 14:55:57.591584
 
 """
 from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '20c4bbdb14c9'
-down_revision: Union[str, None] = '6f4a59e415eb'
+revision: str = '2cfa9b6647d9'
+down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -37,6 +37,21 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')
     )
+    op.create_table('users',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('username', sa.String(), nullable=False),
+    sa.Column('email', sa.String(), nullable=False),
+    sa.Column('password_hash', sa.String(), nullable=False),
+    sa.Column('is_admin', sa.Boolean(), nullable=False),
+    sa.Column('bio', sa.String(length=150), nullable=True),
+    sa.Column('preferences', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+    sa.Column('avatar', sa.String(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('email'),
+    sa.UniqueConstraint('username')
+    )
     op.create_table('comments',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('content', sa.String(length=500), nullable=False),
@@ -53,20 +68,20 @@ def upgrade() -> None:
     sa.Column('description', sa.Text(), nullable=False),
     sa.Column('thumbnail_url', sa.String(), nullable=True),
     sa.Column('instructions', sa.Text(), nullable=False),
-    sa.Column('author_id', sa.Integer(), nullable=False),
-    sa.Column('nutriscore', sa.String(), nullable=False),
+    sa.Column('nutriscore', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('author_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['author_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('slug')
     )
     op.create_table('recipes_ingredients',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('recipe_id', sa.Integer(), nullable=False),
-    sa.Column('product_id', sa.Integer(), nullable=False),
     sa.Column('quantity', sa.Float(), nullable=False),
     sa.Column('unit', sa.String(), nullable=False),
+    sa.Column('recipe_id', sa.Integer(), nullable=False),
+    sa.Column('product_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['product_id'], ['products.id'], ),
     sa.ForeignKeyConstraint(['recipe_id'], ['recipes.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -80,5 +95,6 @@ def downgrade() -> None:
     op.drop_table('recipes_ingredients')
     op.drop_table('recipes')
     op.drop_table('comments')
+    op.drop_table('users')
     op.drop_table('products')
     # ### end Alembic commands ###
