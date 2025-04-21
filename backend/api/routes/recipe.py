@@ -1,66 +1,68 @@
 from flask import Blueprint, request, jsonify
-from api import db
-from api.models.recipe import Recipe, recipe_schema, recipes_schema
+from api.routes.auth import login_required
+from api.schemas.recipe import recipe_create_schema
+from api.extensions import db
+from marshmallow import ValidationError
+from api.models.recipe import Recipe
 
 recipe_bp = Blueprint("recipe", __name__)
 
-# 🔹 Récupérer toutes les recettes
-@recipe_bp.route("/", methods=["GET"])
-def get_all_recipes():
-    recipes = Recipe.query.all()
-    return recipes_schema.jsonify(recipes)
 
-# 🔹 Récupérer une recette par ID
-@recipe_bp.route("/<int:id>", methods=["GET"])
-def get_recipe(id):
-    recipe = Recipe.query.get(id)
-    if not recipe:
-        return jsonify({"message": "Recipe not found"}), 404
-    return recipe_schema.jsonify(recipe)
+# Feed - Algo based on follows and preferences
+@recipe_bp.route("/feed", methods=["GET"])
+def recipe_feed():
+    return "TODO"
 
-# 🔹 Ajouter une recette
-@recipe_bp.route('/recipe', methods=['POST'])
-def create_recipe():
-    data = request.get_json()
 
-    new_recipe = Recipe(
-        title=data.get("title", ""),  # Par défaut, une chaîne vide
-        tag=data.get("tag", ""),  # Tag par défaut vide
-        content=data.get("content", ""),  # Contenu obligatoire
-        likes=data.get("likes", 0),  # Nombre de likes, 0 par défaut
-        is_public=data.get("is_public", True),  # Par défaut, la recette est publique
-        nutriscore=data.get("nutriscore", "C")  # Nutriscore par défaut à "C"
-    )
+# Search - Based on keywords in title and description
+@recipe_bp.route("/search", methods=["GET"])
+def recipe_search():
+    query = request.args.get("q", "").strip().replace(" ", " & ")
+    if not query:
+        return jsonify({"error": "q parameter is required"}), 400
+    return "TODO"
 
-    # Ajouter et sauvegarder la recette en base de données
-    db.session.add(new_recipe)
+
+# Create Recipe
+@recipe_bp.route("/", methods=["POST"])
+@login_required()
+def recipe_create():
+    recipe_data = request.get_json()
+
+    try:
+        recipe: Recipe = recipe_create_schema.load(recipe_data)
+    except ValidationError as error:
+        return jsonify({"error": error.messages}), 400
+
+    db.session.add(recipe)
     db.session.commit()
 
-    return recipe_schema.jsonify(new_recipe), 201
+    return recipe_create_schema.jsonify(recipe)
 
-# 🔹 Modifier une recette
-@recipe_bp.route("/<int:id>", methods=["PUT"])
-def update_recipe(id):
-    recipe = Recipe.query.get(id)
-    if not recipe:
-        return jsonify({"message": "Recipe not found"}), 404
 
-    data = request.get_json()
-    recipe.title = data["title"]
-    recipe.tag = data.get("tag", recipe.tag)
-    recipe.content = data["content"]
-    recipe.nutriscore = data["nutriscore"]
-    
-    db.session.commit()
-    return recipe_schema.jsonify(recipe)
+# Modify Recipe
+@recipe_bp.route("/<id>", methods=["PUT"])
+@login_required()
+def recipe_modify(id):
+    return "TODO"
 
-# 🔹 Supprimer une recette
-@recipe_bp.route("/<int:id>", methods=["DELETE"])
-def delete_recipe(id):
-    recipe = Recipe.query.get(id)
-    if not recipe:
-        return jsonify({"message": "Recipe not found"}), 404
 
-    db.session.delete(recipe)
-    db.session.commit()
-    return jsonify({"message": "Recipe deleted successfully"})
+# Delete Recipe
+@recipe_bp.route("/<id>", methods=["DELETE"])
+@login_required(id)
+def recipe_delete():
+    return "TODO"
+
+
+# Like Recipe
+@recipe_bp.route("/<id>/like", methods=["POST"])
+@login_required()
+def recipe_like(id):
+    return "TODO"
+
+
+# Comment Recipe
+@recipe_bp.route("/<id>/comment", methods=["POST"])
+@login_required()
+def recipe_comment(id):
+    return "TODO"

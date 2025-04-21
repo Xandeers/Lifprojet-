@@ -1,47 +1,32 @@
 from api.extensions import db
-from sqlalchemy import exists, Text
 from sqlalchemy.orm import Mapped, mapped_column
-from datetime import datetime, timezone
+from enum import Enum as PyEnum
+from sqlalchemy import Enum
 
 
-class ProductIndustrial(db.Model):
+class ProductCategory(PyEnum):
+    drink = "drink"
+    cheese = "cheese"
+    fat = "fat"
+    other = "other"
 
-    __tablename__ = "products_industrials"
 
-    # Fields
+class Product(db.Model):
+    __tablename__ = "products"
 
-    barcode: Mapped[str] = mapped_column(primary_key=True, autoincrement=False)
-    name: Mapped[str]
-    image: Mapped[str]
-    information: Mapped[str] = mapped_column(
-        Text
-    )  # description qui peu contenir par exemple les alergene exemple arrachide etc ..
-    # --------macro liste--------
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(unique=True)
+    category: Mapped[ProductCategory] = mapped_column(
+        Enum(ProductCategory, name="product_category")
+    )  # 4 algos pour le Nutriscore selon catégorie: "drink", "cheese", "fat", "other"
+
     energy: Mapped[float]
-    fat: Mapped[float]  # matiere grasse
-    saturated_fat: Mapped[float]
-    carbohydrates: Mapped[float]  # glucide
-    sugars: Mapped[float]
-    fiber: Mapped[float]
     proteins: Mapped[float]
+    sugars: Mapped[float]
+    saturated_fat: Mapped[float]
     salt: Mapped[float]
-    sodium: Mapped[float]
-    fruits_vegetables_nuts_estimate: Mapped[float]
-    # -------------------------
-    nutriscore: Mapped[str]
-    created_at: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
-    updated_at: Mapped[datetime] = mapped_column(
-        default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc)
-    )
+    fruits_veg: Mapped[float]
+    fibers: Mapped[float]
 
-    @classmethod
-    def is_product_taken(cls, barcode):
-        return db.session.query(exists().where(cls.barcode == barcode)).scalar()
-
-    @classmethod
-    def is_inside(cls, element):
-        """Vérifie si un element est contenu dans un produit"""
-        pattern = rf"^[a-zA-Z0-9]*{element}[a-zA-Z0-9]*$"
-        return db.session.query(
-            exists().where(cls.information.op("REGEXP")(pattern))
-        ).scalar()
+    source: Mapped[str]  # "ciqual", "off"...
+    barcode: Mapped[str] = mapped_column(nullable=True)  # pour OFF seulement

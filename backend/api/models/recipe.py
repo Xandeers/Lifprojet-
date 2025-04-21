@@ -1,56 +1,108 @@
-from api import db, ma
-from api.models.user import User
-from api.schemas.user import UserSchema
+from api.extensions import db
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Text, ForeignKey, String, Integer, event
+from datetime import datetime, timezone
 
 
-# 🔹 Modèle Recipe (ajout de la relation avec User)
+def score_to_grade(score):
+    if score <= -1:
+        return "A"
+    elif score <= 2:
+        return "B"
+    elif score <= 10:
+        return "C"
+    elif score <= 18:
+        return "D"
+    else:
+        return "E"
+
+
 class Recipe(db.Model):
     __tablename__ = "recipes"
 
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(255), nullable=False)
-    tag = db.Column(db.String(100))
-    content = db.Column(db.Text, nullable=False)
-    likes = db.Column(db.Integer, default=0)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    is_public = db.Column(db.Boolean, default=True)
-    nutriscore = db.Column(db.String(1), nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str]
+    slug: Mapped[str] = mapped_column(unique=True)
+    description: Mapped[str] = mapped_column(Text)
+    thumbnail_url: Mapped[str] = mapped_column(nullable=True)
+    instructions: Mapped[str] = mapped_column(Text)  # Markdown format
+    author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    nutriscore: Mapped[str]
+    created_at: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(
+        default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc)
+    )
 
-    # 🔗 Ajout de la clé étrangère vers User
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    author = relationship("User", back_populates="recipes")
+    ingredients = relationship("RecipeIngredient", back_populates="recipe")
 
-    def __init__(self, title, tag, content, nutriscore, user_id, is_public=True):
-        self.title = title
-        self.tag = tag
-        self.content = content
-        self.nutriscore = nutriscore
-        self.is_public = is_public
-        self.user_id = user_id
+    def calculate_nutriscore(self):
+        total_negative = 0
+        total_positive = 0
 
-    def add_like(self):
-        self.likes += 1
-        db.session.commit()
+        for ingredient in self.ingredients:
+            product = ingredient.product
+            quantity = ingredient.quantity
+
+            if not product:
+                continue
+
+            # Conversion
+            energy_kj_per_100g = product.energy * 4.184  # conversion kCal vers kJ
+            energy = (energy_kj_per_100g / 100) * quantity
+            sugars = (product.sugars / 100) * quantity
+            saturated_fat = (product.saturated_fat / 100) * quantity
+            salt = (product.salt / 100) * quantity
+            fibers = (product.fibers / 100) * quantity
+            proteins = (product.proteins / 100) * quantity
+            fruits_veg = (product.fruits_veg / 100) * quantity
+
+            # Nutriscore points
+            negative_points = (
+                energy / 335.0 + sugars / 4.5 + saturated_fat / 1.0 + salt / 0.09
+            )
+            positive_points = fibers / 0.9 + proteins / 1.6 + fruits_veg / 40.0
+
+            total_negative += negative_points
+            total_positive += positive_points
+
+        total_score = total_negative - total_positive
+        return score_to_grade(total_score)
+
+    def update_nutriscore(self):
+        self.nutriscore = self.calculate_nutriscore()
 
 
-# 🔹 Schéma Recipe (ajout de l'auteur)
-class RecipeSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Recipe
-        load_instance = True
-
-    id = ma.auto_field()
-    title = ma.auto_field()
-    tag = ma.auto_field()
-    content = ma.auto_field()
-    likes = ma.auto_field()
-    created_at = ma.auto_field()
-    is_public = ma.auto_field()
-    nutriscore = ma.auto_field()
-    user_id = ma.auto_field()
-    author = ma.Nested(
-        UserSchema, only=("id", "username")
-    )  # Infos minimales sur l'auteur
+@event.listens_for(Recipe, "before_insert")
+@event.listens_for(Recipe, "before_update")
+def update_recipe_nutriscore(mapper, connection, target):
+    target.update_nutriscore()
 
 
-recipe_schema = RecipeSchema()
-recipes_schema = RecipeSchema(many=True)
+class RecipeIngredient(db.Model):
+    __tablename__ = "recipes_ingredients"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    recipe_id: Mapped[int] = mapped_column(ForeignKey("recipes.id"))
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"))
+    quantity: Mapped[float]
+    unit: Mapped[str]
+
+    recipe = relationship("Recipe", back_populates="ingredients")
+    product = relationship("Product")
+
+
+class Comment(db.Model):
+    __tablename__ = "comments"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    content: Mapped[str] = mapped_column(String(500))
+    author_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    parent_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("comments.id"), nullable=True
+    )
+
+    author = relationship("User", back_populates="comments")
+    parent = relationship(
+        "Comment", remote_side=lambda: [Comment.id], backref="children", lazy="joined"
+    )

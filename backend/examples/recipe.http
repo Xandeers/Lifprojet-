@@ -1,0 +1,6 @@
+POST http://localhost:5000/recipe
+Content-Type: application/json
+
+{
+    "title": "Pizza 4 fromages"
+}

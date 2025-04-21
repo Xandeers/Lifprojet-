@@ -39,6 +39,9 @@ export default function UserDropdown() {
               <Link className={menuItemClasses} to="/me">
                 Mon profile
               </Link>
+              <Link className={menuItemClasses} to="/recipe/create">
+                Créer une recette
+              </Link>
               <Logout className={menuItemClasses} />
             </div>
           )}

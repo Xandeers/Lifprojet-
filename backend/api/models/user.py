@@ -1,6 +1,8 @@
 from api.extensions import db
-from sqlalchemy import exists
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import exists, String
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.ext.mutable import MutableDict
 from bcrypt import checkpw, hashpw, gensalt
 from datetime import datetime, timezone
 
@@ -15,10 +17,17 @@ class User(db.Model):
     email: Mapped[str] = mapped_column(unique=True)
     password_hash: Mapped[str]
     is_admin: Mapped[bool] = mapped_column(default=False)
+    bio: Mapped[str] = mapped_column(String(150), nullable=True)
+    preferences: Mapped[dict] = mapped_column(
+        MutableDict.as_mutable(JSONB), default=dict, nullable=True
+    )
+    avatar: Mapped[str] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(
         default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc)
     )
+    recipes = relationship("Recipe", back_populates="author")
+    comments = relationship("Comment", back_populates="author")
 
     @property
     def password(self):

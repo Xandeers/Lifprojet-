@@ -1,0 +1,27 @@
+# Auth routes
+POST http://localhost:5000/auth/register HTTP/1.1
+Content-Type: application/json
+
+{
+    "username": "john",
+    "email": "john@john.test",
+    "password": "john"
+}
+
+###
+
+POST http://localhost:5000/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+    "email": "john@john.test",
+    "password": "john"
+}
+
+###
+
+GET http://localhost:5000/auth/me HTTP/1.1
+
+###
+
+DELETE http://localhost:5000/auth/logout HTTP/1.1
