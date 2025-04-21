@@ -140,7 +140,7 @@ class RecipeService:
             raise ValueError(f"Recipe [{slug}] not found")
 
         # check if already liked
-        existing_like = self.db.query(RecipeLike).filter_by(user_id=user_id, recipe_id=recipe.id).first()
+        existing_like = self.get_like_recipe(slug, user_id)
 
         # unlike
         if existing_like:
@@ -155,3 +155,18 @@ class RecipeService:
 
         return True
 
+    def get_like_recipe(self, slug: str, user_id: int):
+        # check if recipe exists
+        recipe = self.db.query(Recipe).filter(Recipe.slug == slug).first()
+        if not recipe:
+            raise ValueError(f"Recipe [{slug}] not found")
+
+        # check if already liked
+        existing_like = self.db.query(RecipeLike).filter_by(user_id=user_id, recipe_id=recipe.id).first()
+        return existing_like
+
+    def get_like_recipe_status(self, slug: str, user_id: int):
+        existing_like = self.get_like_recipe(slug, user_id)
+        if existing_like:
+            return True
+        return False

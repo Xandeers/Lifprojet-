@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.params import Depends
-from sqlalchemy import func
+from sqlalchemy import func, desc
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -21,9 +21,13 @@ def search_by_text(query: str, db: Session = Depends(get_db)) -> List[RecipeBase
 
 # WIP: Le feed est clairement améliorable
 @router.get("/feed")
-def feed(db: Session = Depends(get_db)) -> List[RecipeBase]:
-    random_recipes = db.query(Recipe).order_by(func.random()).limit(10).all()
-    return random_recipes #type: ignore
+def feed(offset: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    return (db
+            .query(Recipe)
+            .order_by(desc(Recipe.updated_at))
+            .offset(offset)
+            .limit(limit)
+            .all())
 
 @router.post("/")
 def create(recipe_data: RecipeCreate, db: Session = Depends(get_db), current_user_id: int = Depends(get_current_user_id)) -> RecipeBase:
@@ -67,6 +71,16 @@ def like(slug: str, db: Session = Depends(get_db), current_user_id: int = Depend
     recipe_service = RecipeService(db)
     try:
         liked = recipe_service.like_recipe(slug, current_user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return {"liked": liked}
+
+@router.get("/{slug}/like")
+def like(slug: str, db: Session = Depends(get_db), current_user_id: int = Depends(get_current_user_id)):
+    recipe_service = RecipeService(db)
+    try:
+        liked = recipe_service.get_like_recipe_status(slug, current_user_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
