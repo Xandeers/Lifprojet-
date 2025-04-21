@@ -1,3 +1,5 @@
+import { Account } from "../hooks/useAuth";
+
 export enum RecipeDifficulty {
   Beginner = 1,
   Intermediate = 2,
@@ -5,15 +7,23 @@ export enum RecipeDifficulty {
 }
 
 export type Recipe = {
+  id: number;
   title: string;
-  slug: string;
-  content?: string;
-  image_url: string;
   description: string;
-  prep_time: number;
-  cook_time: number;
-  difficulty: RecipeDifficulty;
-  tags: String[];
-  likes: number;
-  published_at: string;
+  slug: string;
+  thumbnail_url: string;
+  instructions: string;
+  nutriscore: number;
+  ingredients: {
+    quantity: number;
+    unit: string;
+    product: {
+      name: string;
+      category: string;
+    };
+  }[];
+  likes_count: number;
+  created_at: string;
+  updated_at: string;
+  author: Account;
 };
