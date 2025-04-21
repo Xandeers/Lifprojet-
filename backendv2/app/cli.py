@@ -1,8 +1,18 @@
 import typer
 from pathlib import Path
+
+from dotenv import load_dotenv
+from openai import OpenAI
+from typing_extensions import Annotated
+
 from app.database import get_session
 from app.models import Product, ProductCategory
 import pandas as pd
+import os
+import json
+import requests
+
+load_dotenv()
 
 cli = typer.Typer()
 
@@ -72,6 +82,71 @@ def import_ciqual():
                 added += 1
         except Exception as e:
             print(f"Error at line: {row.get('alim_nom_fr', '?')} - {e}")
+
+############################# FAKE RECIPES #############################
+
+@cli.command()
+def fake_recipes(number: Annotated[int, typer.Argument()]):
+    print("Generating fakes recipes with OpenAI as AI Wrapper")
+
+    # openai connection
+    client = OpenAI(api_key=os.getenv("OPENAI_KEY"))
+
+    # api connection
+    BASE_URL = "http://127.0.0.1:8000"
+    login_data = {
+        "email": "faker@faker.com",
+        "password": "faker"
+    }
+
+    session = requests.session()
+    login_res = session.post(f"{BASE_URL}/auth/login", json=login_data)
+    if login_res.status_code != 200:
+        print("Unable to login to API")
+        exit()
+
+    # prompt pour une recette
+    prompt = """
+    Tu es un générateur de recette. Tu dois répondre uniquement en JSON, sans aucun texte avant ou après.
+
+    Voici le format JSON exact à respecter :
+    {
+      "title": "string",
+      "description": "string",
+      "thumbnail_url": "string",
+      "instructions": "string",
+      "ingredients": [
+        {
+          "id": 0,
+          "quantity": 0
+        }
+      ]
+    }
+
+    Consignes :
+    - Les champs id et quantity doivent être des entiers entre 1 et 100.
+    - Limite-toi à exactement 3 ingrédients.
+    - Tous les champs doivent être présents.
+    - Ne retourne rien d’autre que l’objet JSON.
+    """
+
+    for i in range (0, number):
+        response = client.responses.create(
+            model="gpt-3.5-turbo",
+            input=prompt
+        )
+
+        output = response.output_text
+        try:
+            recipe_data = json.loads(output)
+            post_response = session.post(f"{BASE_URL}/recipe", json=recipe_data)
+            if post_response.status_code == 200:
+                print(f"✅ Recette {recipe_data["title"]} crée")
+            else:
+                print("❌: Erreur : ", post_response.status_code, post_response.text)
+        except json.JSONDecodeError as e:
+            print("❌: Erreur de parsing JSON :", e)
+
 
 if __name__ == "__main__":
     cli()

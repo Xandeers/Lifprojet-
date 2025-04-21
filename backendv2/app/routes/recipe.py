@@ -1,9 +1,11 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.params import Depends
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import List
 
 from app.database import get_db
+from app.models import Recipe
 from app.schemas.recipe import RecipeCreate, RecipeBase
 from app.services.recipe import RecipeService
 from app.utils.session import get_current_user_id
@@ -17,9 +19,11 @@ def search_by_text(query: str, db: Session = Depends(get_db)) -> List[RecipeBase
     recipes = [RecipeBase.model_validate(recipe) for recipe in results]
     return recipes
 
+# WIP: Le feed est clairement améliorable
 @router.get("/feed")
-def feed():
-    return "todo"
+def feed(db: Session = Depends(get_db)) -> List[RecipeBase]:
+    random_recipes = db.query(Recipe).order_by(func.random()).limit(10).all()
+    return random_recipes #type: ignore
 
 @router.post("/")
 def create(recipe_data: RecipeCreate, db: Session = Depends(get_db), current_user_id: int = Depends(get_current_user_id)) -> RecipeBase:
