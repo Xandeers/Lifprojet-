@@ -4,10 +4,6 @@ from itsdangerous import URLSafeSerializer, SignatureExpired, BadSignature
 from fastapi import Request, Response, HTTPException
 from datetime import timedelta
 
-from sqlalchemy.orm import Session
-
-from app.models import User
-
 load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")

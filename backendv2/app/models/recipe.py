@@ -3,6 +3,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Text, ForeignKey, String, Integer, event
 from datetime import datetime, timezone
 from app.database import Base
+import secrets
+import string
 
 
 class Recipe(Base):
@@ -105,7 +107,12 @@ class Comment(Base):
 def update_recipe_nutriscore(mapper, connection, target):
     target.update_nutriscore()
 
+def generate_slug_suffix(length: int = 6) -> str:
+    alphabet = string.ascii_lowercase + string.digits
+    return ''.join(secrets.choice(alphabet) for _ in range(length))
+
 @event.listens_for(Recipe, "before_insert")
 def generate_slug(mapper, connection, target: Recipe):
     if not target.slug:
-        target.slug = slugify(target.title)
+        slug = f"{slugify(target.title)}-{generate_slug_suffix()}"
+        target.slug = slug
