@@ -54,7 +54,7 @@ export default function RecipeCard(data: Recipe) {
       <div className="flex items-stretch">
         <Link to={`/recipe/${data.slug}`}>
           <img
-            src={data.thumbnail_url}
+            src={`http://127.0.0.1:8000/upload/thumbnail/${data.thumbnail_url}`}
             alt="recipe image"
             className="w-32 h-32 object-cover brightness-90 hover:brightness-100 flex-shrink-0"
           />
