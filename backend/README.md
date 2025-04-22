@@ -17,17 +17,24 @@ docker compose up -d
    (sachant que UV gère aussi l'installation de Python au besoin c'est comme vous voulez)
 
 3) Créer le fichier **.env** à partir du **.env.example** (les données par défaut sont déjà correctes)
-4) Installation des dépendences avec **uv**
+   
+4) Créer un environnement Python virtuel:
+```bash
+uv venv
+source .venv/bin/activate
+```
+
+5) Installation des dépendences avec **uv**
 ```bash
 uv sync # installe les dépendences
 ```
 
-5) Effectuer les migrations pour créer les tables:
+6) Effectuer les migrations pour créer les tables:
 ```bash
 uv run alembic upgrade head
 ```
 
-6) Lancer le serveur de développement
+7) Lancer le serveur de développement
 ```bash
 uv run fastapi run
 ```
@@ -50,5 +57,5 @@ qui est pas cher et fonctionne bien avec le bon prompt mais il manque de créati
 __Note: Il faut que les idéntifiants du faker dans le .env correspondent à un vrai compte inscrit__
 
 ```bash
-uv run -m app.cli fake-recipes [nbr de recettes] [optionnel: URL de miniature par défaut rien]
+uv run -m app.cli fake-recipes [nbr de recettes] [optionnel: URL de miniature, par défaut: vide]
 ```
