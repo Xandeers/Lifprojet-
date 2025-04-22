@@ -1,19 +1,27 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useNavigate } from "react-router";
+import { useDropzone } from "react-dropzone";
 import Layout from "../../components/layout/Layout";
 import { Product, ProductSearchIngredient } from "../../types/product";
-import { useNavigate } from "react-router";
 import { fetchAPI } from "../../utils/api";
 import { Recipe } from "../../types/recipe";
 import ProductSearch from "../../components/recipe/ProductSearch";
 import Form from "../../components/forms/Form";
 import { useAccount } from "../../hooks/useAccount";
 
-interface IngredientInput extends ProductSearchIngredient {}
+interface IngredientInput extends ProductSearchIngredient { }
+
+type UploadFile = {
+  filename: string;
+  type: string;
+}
 
 export default function RecipeCreatePage() {
   const { account } = useAccount();
   const [ingredients, setIngredients] = useState<IngredientInput[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+  const [thumbnailUrl, setThumbnailUrl] = useState<string>("");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleAddProduct = (product: Product) => {
@@ -50,7 +58,8 @@ export default function RecipeCreatePage() {
   };
 
   const handleSubmit = async (formData: Record<string, FormDataEntryValue>) => {
-    const { title, description, thumbnailUrl, instructions } = formData;
+    const { title, description, instructions } = formData;
+
     const body = {
       title,
       description,
@@ -71,6 +80,33 @@ export default function RecipeCreatePage() {
     }
   };
 
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    setPreviewUrl(URL.createObjectURL(file));
+    fetch("http://127.0.0.1:8000/upload/thumbnail", {
+      method: "POST",
+      body: formData,
+      credentials: "include"
+    })
+      .then(response => response.json())
+      .then(data => {
+        setThumbnailUrl(data.filename)
+      })
+      .catch(error => {
+        console.error("Erreur : ", error);
+      });
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { "image/*": [] },
+    multiple: false,
+  });
+
   const fields = [
     {
       name: "title",
@@ -85,12 +121,6 @@ export default function RecipeCreatePage() {
       placeholder: "Description de la recette",
     },
     {
-      name: "thumbnailUrl",
-      label: "URL de l'image",
-      type: "text",
-      placeholder: "URL de l'image miniature",
-    },
-    {
       name: "instructions",
       label: "Instructions",
       type: "text",
@@ -102,11 +132,30 @@ export default function RecipeCreatePage() {
     <Layout>
       <div className="max-w-2xl mx-auto space-y-4">
         <h1 className="text-2xl font-bold">Créer une recette</h1>
-        <Form
-          fields={fields}
-          onSubmit={handleSubmit}
-          submitText="Créer la recette"
-        />
+
+        <div className="space-y-2">
+          <label className="block font-semibold">Image miniature</label>
+          <div
+            {...getRootProps()}
+            className="border-2 border-dashed p-4 rounded cursor-pointer text-center"
+          >
+            <input {...getInputProps()} />
+            {previewUrl ? (
+              <img
+                src={previewUrl}
+                alt="Aperçu"
+                className="w-full h-48 object-cover rounded"
+              />
+            ) : isDragActive ? (
+              <p>Déposez l'image ici...</p>
+            ) : (
+              <p>Glissez-déposez une image ou cliquez pour sélectionner un fichier</p>
+            )}
+          </div>
+        </div>
+
+        <Form fields={fields} onSubmit={handleSubmit} submitText="Créer la recette" />
+
         <div className="space-y-2 mt-4">
           <h2 className="font-semibold">Ingrédients</h2>
           <ProductSearch

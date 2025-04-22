@@ -36,7 +36,7 @@ export default function RecipePage() {
     <Layout>
       <div className="recipe-detail-container">
         <h1 className="text-3xl font-bold">{recipe.title}</h1>
-        <img src={recipe.thumbnail_url} alt={recipe.title} className="w-full h-60 object-cover mt-4 rounded-lg" />
+        <img src={`http://127.0.0.1:8000/upload/thumbnail/${recipe.thumbnail_url}`} alt={recipe.title} className="w-full h-60 object-cover mt-4 rounded-lg" />
         <p className="text-sm text-gray-500 mt-2">Publié le {new Date(recipe.created_at).toLocaleDateString()} par <Link to={`/users/${recipe.author.username}`}><b>{recipe.author.username}</b></Link></p>
 
         <div className="mt-4">
