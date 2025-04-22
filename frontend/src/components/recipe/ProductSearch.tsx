@@ -1,16 +1,11 @@
 import { useEffect, useState } from "react";
 import { Product } from "../../types/product";
 import { fetchAPI } from "../../utils/api";
-interface ProductSearchProps {
-  onSelect: (product: Product) => void;
-  selectedProducts: Product[]; // Liste des produits déjà sélectionnés
-  onRemove: (product: Product) => void; // Fonction pour supprimer un produit de la sélection
-}
 
 interface ProductSearchProps {
   onSelect: (product: Product) => void;
-  selectedProducts: Product[]; // Liste des produits déjà sélectionnés
-  onRemove: (product: Product) => void; // Fonction pour supprimer un produit de la sélection
+  selectedProducts: Product[];
+  onRemove: (product: Product) => void;
 }
 
 export default function ProductSearch({
@@ -22,7 +17,6 @@ export default function ProductSearch({
   const [results, setResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Fonction pour effectuer la recherche dans l'API
   const searchProducts = async (query: string) => {
     setLoading(true);
     try {
@@ -37,24 +31,22 @@ export default function ProductSearch({
     setLoading(false);
   };
 
-  // Déclenche la recherche dès qu'une lettre est tapée (debouncing)
   useEffect(() => {
     if (searchTerm.length < 3) {
-      setResults([]); // Si la recherche est trop courte, on vide les résultats
+      setResults([]);
       return;
     }
 
     const timer = setTimeout(() => {
       searchProducts(searchTerm);
-    }, 300); // 300ms de délai avant de lancer la requête (debouncing)
+    }, 300);
 
-    return () => clearTimeout(timer); // Nettoie le timer au changement de terme de recherche
+    return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Fonction pour gérer la sélection d'un produit
   const handleSelectProduct = (product: Product) => {
     if (!selectedProducts.some((p) => p.id === product.id)) {
-      onSelect(product); // Ajoute le produit à la sélection si ce n'est pas déjà le cas
+      onSelect(product);
     }
   };
 
@@ -70,19 +62,19 @@ export default function ProductSearch({
 
       {loading && <p>Chargement...</p>}
 
-      <ul>
+      <ul> {/* si ul vide peut être afficher "Pas de résultat" */}
         {results.map((product) => (
           <li
             key={product.id}
-            className="flex justify-between items-center cursor-pointer hover:bg-gray-100 p-2 border-1 border-gray-300 p-3"
-            onClick={() => handleSelectProduct(product)} // Sélectionne le produit
+            className="flex justify-between items-center cursor-pointer hover:bg-gray-100 p-3 border-1 border-gray-300"
+            onClick={() => handleSelectProduct(product)}
           >
             <span>{product.name}</span>
             {selectedProducts.some((p) => p.id === product.id) && (
               <button
                 onClick={(e) => {
-                  e.stopPropagation(); // Empêche la sélection du produit lors du clic sur la croix
-                  onRemove(product); // Appelle la fonction pour supprimer le produit
+                  e.stopPropagation();
+                  onRemove(product);
                 }}
                 className="text-red-500 hover:text-red-700 ml-2"
               >
